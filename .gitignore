@@ -1,0 +1,120 @@
+# ==========================================
+# MIRA — Flutter
+# ==========================================
+
+# ------------------------------------------
+# Dart / Flutter
+# ------------------------------------------
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+flutter_*.png
+flutter_*.log
+
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# ------------------------------------------
+# Environment / secrets
+# ------------------------------------------
+.env
+.env.*
+!.env.example
+
+*.key
+*.pem
+*.p12
+*.jks
+
+# ------------------------------------------
+# IDE
+# ------------------------------------------
+
+# VS Code
+.vscode/
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ------------------------------------------
+# macOS
+# ------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ------------------------------------------
+# Windows
+# ------------------------------------------
+Thumbs.db
+Desktop.ini
+
+# ------------------------------------------
+# Android
+# ------------------------------------------
+android/.gradle/
+android/local.properties
+android/key.properties
+
+# Signing / keystores
+android/app/*.jks
+android/app/*.keystore
+
+# ------------------------------------------
+# iOS / Xcode
+# ------------------------------------------
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+DerivedData/
+
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# ------------------------------------------
+# CocoaPods
+# ------------------------------------------
+Pods/
+
+# ------------------------------------------
+# Logs
+# ------------------------------------------
+*.log
+
+# ------------------------------------------
+# Temporary files
+# ------------------------------------------
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ------------------------------------------
+# Coverage
+# ------------------------------------------
+coverage/
+
+# ------------------------------------------
+# Supabase / API secrets
+# ------------------------------------------
+supabase/.temp/
+
+# ------------------------------------------
+# Firebase
+# ------------------------------------------
+
+# Uncomment later if Firebase config
+# should NOT be stored in repository:
+# android/app/google-services.json
+# ios/Runner/GoogleService-Info.plist
