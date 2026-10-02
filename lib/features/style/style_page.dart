@@ -187,6 +187,7 @@ class _StylePageState extends State<StylePage> {
   String tab = 'wardrobe', query = '', filter = 'all';
   Future<void> photo(Entry e) async {
     final store = StoreScope.of(context);
+    final photoScope = store.scope;
     final source = await sheet<ImageSource>(
       context,
       Column(
@@ -209,12 +210,26 @@ class _StylePageState extends State<StylePage> {
       return;
     }
     await perform(context, () async {
+      if (store.scope != photoScope) {
+        throw const FormatException(
+          'Аккаунт изменился. Выберите фотографию заново.',
+        );
+      }
       final path = await PhotoService().pick(
         source,
         Config.cloudEnabled ? Supabase.instance.client : null,
       );
       if (path != null) {
-        await store.put(e.copy(data: {...e.data, 'photo': path}));
+        await store.mutate((d) {
+          if (store.scope != photoScope) {
+            throw const FormatException(
+              'Аккаунт изменился. Выберите фотографию заново.',
+            );
+          }
+          final current = d.find(e.id);
+          if (current == null) throw const FormatException('Вещь уже удалена');
+          d.put(current.copy(data: {...current.data, 'photo': path}));
+        });
       }
     });
   }

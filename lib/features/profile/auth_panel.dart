@@ -38,7 +38,7 @@ class _AuthPanelState extends State<AuthPanel> {
           password: password.text,
           emailRedirectTo: redirect,
         );
-        if (response.session == null) {
+        if (response.session == null && mounted) {
           setState(
             () => message =
                 'Подтвердите адрес по ссылке из письма, затем войдите.',

@@ -1,24 +1,32 @@
+import 'dart:convert';
+import '../ai/chat_message.dart';
 import '../../shared/models/entry.dart';
 
 class MiraDocument {
   final Map<String, dynamic> profile;
   final List<Entry> entries;
-  MiraDocument({Map<String, dynamic>? profile, List<Entry>? entries})
-    : profile =
-          profile ??
-          {
-            'name': '',
-            'modules': ['planner', 'style', 'nutrition'],
-            'nutritionMode': 'planning',
-            'waterGoal': 2000,
-            'calorieGoal': 2000,
-            'onboarded': false,
-          },
-      entries = entries ?? [];
+  final List<ChatMessage> chat;
+  MiraDocument({
+    Map<String, dynamic>? profile,
+    List<Entry>? entries,
+    List<ChatMessage>? chat,
+  }) : profile =
+           profile ??
+           {
+             'name': '',
+             'modules': ['planner', 'style', 'nutrition'],
+             'nutritionMode': 'planning',
+             'waterGoal': 2000,
+             'calorieGoal': 2000,
+             'onboarded': false,
+           },
+       entries = entries ?? [],
+       chat = chat ?? [];
   Map<String, dynamic> toJson() => {
     'schemaVersion': 1,
     'profile': profile,
     'entries': entries.map((e) => e.toJson()).toList(),
+    'chat': chat.map((m) => m.toJson()).toList(),
   };
   factory MiraDocument.fromJson(Map<String, dynamic> json) {
     if (json['schemaVersion'] != 1) {
@@ -26,12 +34,22 @@ class MiraDocument {
     }
     return MiraDocument(
       profile: Map<String, dynamic>.from(json['profile'] as Map),
+      chat: (json['chat'] as List? ?? [])
+          .map((m) => ChatMessage.fromJson(Map<String, dynamic>.from(m as Map)))
+          .toList(),
       entries: (json['entries'] as List)
           .map((e) => Entry.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList(),
     );
   }
-  MiraDocument clone() => MiraDocument.fromJson(toJson());
+  MiraDocument clone() => MiraDocument.fromJson(
+    jsonDecode(jsonEncode(toJson())) as Map<String, dynamic>,
+  );
+  void addMessage(ChatMessage message) {
+    chat.add(message);
+    if (chat.length > 60) chat.removeRange(0, chat.length - 60);
+  }
+
   List<Entry> of(Kind kind) => entries.where((e) => e.kind == kind).toList();
   Entry? find(String id) {
     for (final e in entries) {

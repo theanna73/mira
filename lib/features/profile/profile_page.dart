@@ -132,6 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
         !mounted) {
       return;
     }
+    final importScope = store.scope;
     await perform(context, () async {
       final raw = await store.local.read('guest');
       if (raw == null) {
@@ -147,6 +148,9 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       }
       await store.mutate((d) {
+        if (store.scope != importScope) {
+          throw const FormatException('Аккаунт изменился. Повторите перенос.');
+        }
         d.profile.clear();
         d.profile.addAll(guest.profile);
         d.entries.clear();
@@ -414,6 +418,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     StoredDocument(
                       store.document.clone()
                         ..entries.clear()
+                        ..chat.clear()
                         ..profile.clear(),
                     ).toJson(),
                   );
@@ -426,7 +431,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
         const SizedBox(height: 16),
         const Text(
-          'MIRA 0.1.0 · Open-Meteo: погода и геокодирование',
+          'MIRA 0.2.0 · Open-Meteo: погода и геокодирование',
           textAlign: TextAlign.center,
         ),
       ],
