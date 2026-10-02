@@ -1,0 +1,8 @@
+project_id = "mira"
+
+# Each function validates the access token through auth.getUser().
+# This also supports projects using asymmetric JWT signing keys.
+[functions.mira-ai]
+verify_jwt = false
+[functions.delete-account]
+verify_jwt = false
