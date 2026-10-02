@@ -28,6 +28,9 @@ class PhotoService {
       throw StateError('Войдите в аккаунт');
     }
     final bytes = await local.read(path);
+    if (client.auth.currentUser?.id != user.id) {
+      throw StateError('Аккаунт изменился');
+    }
     final ext = extension(bytes);
     final target = '${user.id}/${const Uuid().v4()}.$ext';
     await client.storage
@@ -43,6 +46,7 @@ class PhotoService {
   }
 
   Future<String?> pick(ImageSource source, SupabaseClient? client) async {
+    final originalUserId = client?.auth.currentUser?.id;
     final file = await ImagePicker().pickImage(
       source: source,
       maxWidth: 1400,
@@ -53,6 +57,9 @@ class PhotoService {
       return null;
     }
     final bytes = await file.readAsBytes();
+    if (client?.auth.currentUser?.id != originalUserId) {
+      throw StateError('Аккаунт изменился. Выберите фотографию заново.');
+    }
     final ext = extension(bytes);
     if (bytes.length > 6 * 1024 * 1024) {
       throw StateError('Фото должно быть меньше 6 МБ');

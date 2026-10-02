@@ -159,22 +159,39 @@ class MiraStore extends ChangeNotifier {
   }
 
   Future<void> resolveConflict({required bool useLocal}) async {
-    await _queue;
-    final remote = await cloud!.read();
-    if (useLocal) {
-      revision = remote?.revision ?? 0;
-    } else {
-      document = remote?.document ?? MiraDocument();
-      revision = remote?.revision ?? 0;
-      dirty = false;
-    }
-    await local.write(
-      scope,
-      StoredDocument(document, revision: revision, dirty: dirty).toJson(),
-    );
-    conflict = false;
-    error = null;
-    notifyListeners();
+    final operationScope = scope;
+    final repository = cloud;
+    if (repository == null || !conflict) return;
+    final job = _queue.then((_) async {
+      if (operationScope != scope || !ready) {
+        throw StateError('Аккаунт изменился');
+      }
+      final remote = await repository.read();
+      final nextDocument = useLocal
+          ? document
+          : remote?.document ?? MiraDocument();
+      final nextRevision = remote?.revision ?? 0;
+      final nextDirty = useLocal;
+      await local.write(
+        scope,
+        StoredDocument(
+          nextDocument,
+          revision: nextRevision,
+          dirty: nextDirty,
+        ).toJson(),
+      );
+      document = nextDocument;
+      revision = nextRevision;
+      dirty = nextDirty;
+      conflict = false;
+      error = null;
+      notifyListeners();
+    });
+    _queue = job.catchError((Object e) {
+      error = 'Не удалось разрешить конфликт. Повторите попытку.';
+      notifyListeners();
+    });
+    await job;
     await sync();
   }
 }
