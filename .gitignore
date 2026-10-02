@@ -118,3 +118,10 @@ supabase/.temp/
 # should NOT be stored in repository:
 # android/app/google-services.json
 # ios/Runner/GoogleService-Info.plist
+
+# Local Flutter tool state and generated registration
+.flutter-plugins
+.flutter-plugins-dependencies
+ios/Runner/GeneratedPluginRegistrant.*
+
+node_modules
