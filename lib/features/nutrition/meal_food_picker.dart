@@ -131,7 +131,9 @@ class _MealFoodPickerState extends State<MealFoodPicker> {
               onChanged: (value) => setState(() => query = value),
             ),
             const SizedBox(height: 12),
-            const Text('Мои продукты, рецепты и справочник USDA'),
+            const Text(
+              'Мои продукты, рецепты и USDA · выпуск 2018. Часть названий на английском.',
+            ),
             const SizedBox(height: 8),
             Expanded(
               child: FutureBuilder<FoodCatalog>(
@@ -158,29 +160,38 @@ class _MealFoodPickerState extends State<MealFoodPicker> {
                           .where((food) => !savedIds.contains(food.fdcId))
                           .toList() ??
                       <CatalogFood>[];
-                  return ListView(
-                    children: [
-                      ...own.map((food) => result(food)),
-                      ...found.map((food) => result(food.toEntry(), food)),
-                      if (snapshot.connectionState != ConnectionState.done)
-                        const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: LinearProgressIndicator(),
-                        ),
-                      if (snapshot.hasError)
-                        const Text(
-                          'Справочник недоступен. Можно выбрать сохранённые продукты.',
-                        ),
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          own.isEmpty &&
-                          found.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text(
-                            'Ничего не найдено. Добавь продукт с этикетки в разделе «Продукты».',
-                          ),
-                        ),
-                    ],
+                  return ListView.builder(
+                    itemCount: own.length + found.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index < own.length) return result(own[index]);
+                      if (index < own.length + found.length) {
+                        final food = found[index - own.length];
+                        return result(food.toEntry(), food);
+                      }
+                      return Column(
+                        children: [
+                          if (snapshot.connectionState != ConnectionState.done)
+                            const Padding(
+                              padding: EdgeInsets.all(20),
+                              child: LinearProgressIndicator(),
+                            ),
+                          if (snapshot.hasError)
+                            const Text(
+                              'Справочник недоступен. Можно выбрать сохранённые продукты.',
+                            ),
+                          if (snapshot.connectionState ==
+                                  ConnectionState.done &&
+                              own.isEmpty &&
+                              found.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text(
+                                'Ничего не найдено. Добавь продукт с этикетки в разделе «Продукты».',
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),

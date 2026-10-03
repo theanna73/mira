@@ -8,6 +8,7 @@ import 'nutrition_logic.dart';
 import 'recipe_editor.dart';
 import 'nutrition_summary.dart';
 import 'meal_food_picker.dart';
+import '../../shared/widgets/ai_panel.dart';
 import '../supplies/expiry_logic.dart';
 import '../../services/nutrition/food_catalog.dart';
 import 'food_catalog_picker.dart';
@@ -238,6 +239,11 @@ class _NutritionPageState extends State<NutritionPage> {
     return PageBody(
       title: 'Питание',
       subtitle: '',
+      action: IconButton(
+        tooltip: 'Спросить MIRA',
+        onPressed: () => sheet(context, const AiPanel(module: 'nutrition')),
+        icon: const Icon(Icons.auto_awesome_outlined),
+      ),
       children: [
         ChipStrip(
           spacing: 8,
@@ -335,7 +341,7 @@ class _NutritionPageState extends State<NutritionPage> {
               child: Column(
                 children: [
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 16, right: 80),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     leading: Icon(switch (slot.key) {
                       'breakfast' => Icons.wb_sunny_outlined,
                       'lunch' => Icons.restaurant_outlined,

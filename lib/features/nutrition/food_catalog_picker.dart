@@ -36,7 +36,7 @@ class _FoodCatalogPickerState extends State<FoodCatalogPicker> {
               ),
             ],
           ),
-          const Text('USDA · 62 продукта · на 100 г'),
+          const Text('USDA SR Legacy · на 100 г · выпуск 2018'),
           const SizedBox(height: 16),
           TextField(
             decoration: const InputDecoration(

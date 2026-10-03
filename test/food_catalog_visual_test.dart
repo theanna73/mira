@@ -51,6 +51,7 @@ void main() {
           e.key,
         )..addFont(Future.value(ByteData.sublistView(bytes)))).load();
       }
+      await FoodCatalog.load();
       await Directory('.review/catalog').create(recursive: true);
     });
     final boundary = GlobalKey();
@@ -117,7 +118,7 @@ void main() {
       ),
     );
     await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await FoodCatalog.load();
     });
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'куриное филе');
