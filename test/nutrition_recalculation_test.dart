@@ -31,6 +31,7 @@ Future<void> reveal(WidgetTester tester, Finder target) async {
         )
         .first,
   );
+  await tester.pumpAndSettle();
 }
 
 Future<void> editorApp(
