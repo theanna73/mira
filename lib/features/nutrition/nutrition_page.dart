@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../app/store.dart';
 import '../../shared/models/entry.dart';
 import '../../shared/widgets/common.dart';
 import '../../shared/widgets/editor.dart';
@@ -181,7 +182,13 @@ class _NutritionPageState extends State<NutritionPage> {
             ? IconButton(
                 tooltip: 'Отметить как съеденное',
                 icon: const Icon(Icons.restaurant),
-                onPressed: () => perform(context, () => store.consumePlan(e)),
+                onPressed: () => perform(
+                  context,
+                  () => store.consumePlan(
+                    e,
+                    source: MealConsumptionSource.nutrition,
+                  ),
+                ),
               )
             : const Icon(Icons.restaurant_outlined),
         trailing: IconButton(

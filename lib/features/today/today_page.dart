@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../app/store.dart';
 import '../supplies/supplies_page.dart';
 import '../supplies/expiry_logic.dart';
 import '../lists/lists_page.dart';
@@ -175,7 +176,13 @@ class _TodayPageState extends State<TodayPage> {
                 title: Text(e.title),
                 subtitle: const Text('Запланировано'),
                 trailing: TextButton(
-                  onPressed: () => perform(context, () => store.consumePlan(e)),
+                  onPressed: () => perform(
+                    context,
+                    () => store.consumePlan(
+                      e,
+                      source: MealConsumptionSource.today,
+                    ),
+                  ),
                   child: const Text('Съедено'),
                 ),
               ),
