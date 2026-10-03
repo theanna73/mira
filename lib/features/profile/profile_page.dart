@@ -27,6 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
     bool numeric = false,
   }) async {
     final store = StoreScope.of(context);
+    final operationScope = store.scope;
     final controller = TextEditingController(
       text: store.profile[key]?.toString() ?? '',
     );
@@ -61,13 +62,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 int.parse(result) > 100000)) {
           throw const FormatException('Введите число от 1 до 100 000');
         }
-        await store.setProfile({key: numeric ? int.parse(result) : result});
+        await store.setProfile({
+          key: numeric ? int.parse(result) : result,
+        }, expectedScope: operationScope);
       });
     }
   }
 
   Future<void> chooseCity() async {
     final store = StoreScope.of(context);
+    final operationScope = store.scope;
     final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
@@ -121,13 +125,14 @@ class _ProfilePageState extends State<ProfilePage> {
           'city': selected['name'],
           'latitude': selected['latitude'],
           'longitude': selected['longitude'],
-        });
+        }, expectedScope: operationScope);
       }
     });
   }
 
   Future<void> importGuest() async {
     final store = StoreScope.of(context);
+    final importScope = store.scope;
     if (!await confirm(
           context,
           'Перенести данные гостя?',
@@ -136,7 +141,6 @@ class _ProfilePageState extends State<ProfilePage> {
         !mounted) {
       return;
     }
-    final importScope = store.scope;
     await perform(context, () async {
       final raw = await store.local.read('guest');
       if (raw == null) {
@@ -144,7 +148,15 @@ class _ProfilePageState extends State<ProfilePage> {
       }
       final guest = StoredDocument.fromJson(raw).document;
       final client = Supabase.instance.client;
+      if (store.scope != importScope ||
+          client.auth.currentUser?.id != importScope) {
+        throw StateError('Аккаунт изменился. Повторите перенос.');
+      }
       for (final item in guest.of(Kind.wardrobe)) {
+        if (store.scope != importScope ||
+            client.auth.currentUser?.id != importScope) {
+          throw StateError('Аккаунт изменился. Повторите перенос.');
+        }
         final path = item.text('photo');
         if (path.isNotEmpty && !path.startsWith('storage:')) {
           final uploaded = await PhotoService().uploadLocal(path, client);
@@ -449,6 +461,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           TextButton(
             onPressed: () async {
+              final deletionScope = store.scope;
+              final deletionUserId = user.id;
               if (await confirm(
                     context,
                     'Удалить аккаунт навсегда?',
@@ -456,22 +470,31 @@ class _ProfilePageState extends State<ProfilePage> {
                   ) &&
                   context.mounted) {
                 await perform(context, () async {
-                  final response = await client!.functions.invoke(
+                  if (!store.ready ||
+                      store.scope != deletionScope ||
+                      client!.auth.currentUser?.id != deletionUserId) {
+                    throw StateError('Аккаунт изменился. Повторите действие.');
+                  }
+                  final cleared = store.document.clone()
+                    ..entries.clear()
+                    ..chat.clear()
+                    ..profile.clear();
+                  final response = await client.functions.invoke(
                     'delete-account',
                   );
                   if (response.status != 200) {
                     throw StateError('Не удалось удалить аккаунт');
                   }
-                  await store.local.write(
-                    store.scope,
-                    StoredDocument(
-                      store.document.clone()
-                        ..entries.clear()
-                        ..chat.clear()
-                        ..profile.clear(),
-                    ).toJson(),
-                  );
-                  await client.auth.signOut();
+                  try {
+                    await store.local.write(
+                      deletionScope,
+                      StoredDocument(cleared).toJson(),
+                    );
+                  } finally {
+                    if (client.auth.currentUser?.id == deletionUserId) {
+                      await client.auth.signOut();
+                    }
+                  }
                 });
               }
             },

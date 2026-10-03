@@ -94,6 +94,7 @@ Future<void> editOutfit(BuildContext context, [Entry? entry]) {
 
 Future<void> planOutfit(BuildContext context, Entry outfit) async {
   final store = StoreScope.of(context);
+  final operationScope = store.scope;
   final date = await showDatePicker(
     context: context,
     initialDate: DateTime.now(),
@@ -119,6 +120,9 @@ Future<void> planOutfit(BuildContext context, Entry outfit) async {
     await perform(
       context,
       () => store.mutate((d) {
+        if (store.scope != operationScope) {
+          throw StateError('Аккаунт изменился. Откройте форму заново.');
+        }
         for (final e in existing) {
           d.remove(e.id);
         }

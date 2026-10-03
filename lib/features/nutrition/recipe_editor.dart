@@ -87,7 +87,7 @@ class _RecipeEditorState extends State<RecipeEditor> {
             if (document.find(food.id) == null) document.put(food);
           }
           return <String, dynamic>{
-            'foodId': food?.id ?? i['foodId'] ?? '',
+            'foodId': food?.id ?? '',
             'title': food?.title ?? i['title'] ?? '',
             'grams': double.parse(
               (i['controller'] as TextEditingController).text.replaceAll(

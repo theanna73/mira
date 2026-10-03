@@ -138,4 +138,101 @@ void main() {
     expect(store.of(Kind.meal).length, 1);
     expect(store.of(Kind.mealPlan), isEmpty);
   });
+  test(
+    'failed cloud cache write does not publish an uncached document',
+    () async {
+      final local = MemoryLocal();
+      final cloud = MemoryCloud();
+      final store = MiraStore(local);
+      await store.open('user', repository: cloud);
+      cloud.snapshot = CloudSnapshot(
+        1,
+        MiraDocument(profile: {'name': 'Cloud'}),
+      );
+      local.fail = true;
+      await store.sync();
+      expect(store.revision, 0);
+      expect(store.profile['name'], '');
+      expect(store.error, isNotNull);
+      local.fail = false;
+      await store.sync();
+      expect(store.revision, 1);
+      expect(store.profile['name'], 'Cloud');
+      final restarted = MiraStore(local);
+      await restarted.open('user', synchronize: false);
+      expect(restarted.profile['name'], 'Cloud');
+    },
+  );
+
+  test(
+    'upload followed by cache failure recovers after restart without conflict',
+    () async {
+      final local = MemoryLocal();
+      final cloud = MemoryCloud();
+      final store = MiraStore(local);
+      await store.open('user', repository: cloud);
+      await store.put(Entry(kind: Kind.task, title: 'Upload once'));
+      local.fail = true;
+      await store.sync();
+      expect(cloud.snapshot!.revision, 1);
+      expect(store.dirty, isTrue);
+      expect(store.revision, 0);
+      local.fail = false;
+      final restarted = MiraStore(local);
+      await restarted.open('user', repository: cloud);
+      expect(restarted.conflict, isFalse);
+      expect(restarted.dirty, isFalse);
+      expect(restarted.revision, 1);
+      expect(cloud.snapshot!.revision, 1);
+      expect(restarted.of(Kind.task).single.title, 'Upload once');
+    },
+  );
+
+  test(
+    'document equality tolerates database map order and numeric normalization',
+    () {
+      final first = MiraDocument(
+        profile: {
+          'nested': {
+            'a': 1.0,
+            'b': [2, 3],
+          },
+        },
+      );
+      final same = MiraDocument(
+        profile: {
+          'nested': {
+            'b': [2.0, 3],
+            'a': 1,
+          },
+        },
+      );
+      expect(first.sameContent(same), isTrue);
+      final different = MiraDocument(
+        profile: {
+          'nested': {
+            'b': [3, 2],
+            'a': 1,
+          },
+        },
+      );
+      expect(first.sameContent(different), isFalse);
+    },
+  );
+  test('delayed profile form cannot write to a different account', () async {
+    final local = MemoryLocal();
+    final store = MiraStore(local);
+    await store.open('account-a');
+    final formScope = store.scope;
+    await store.open('account-b');
+    await store.setProfile({'name': 'B'});
+    await expectLater(
+      store.setProfile({'name': 'A'}, expectedScope: formScope),
+      throwsStateError,
+    );
+    expect(store.profile['name'], 'B');
+    final restarted = MiraStore(local);
+    await restarted.open('account-b');
+    expect(restarted.profile['name'], 'B');
+  });
 }
