@@ -7,6 +7,7 @@ import '../../shared/widgets/editor.dart';
 import 'nutrition_logic.dart';
 import 'recipe_editor.dart';
 import 'nutrition_summary.dart';
+import 'meal_food_picker.dart';
 import '../supplies/expiry_logic.dart';
 import '../../services/nutrition/food_catalog.dart';
 import 'food_catalog_picker.dart';
@@ -298,36 +299,50 @@ class _NutritionPageState extends State<NutritionPage> {
             NutritionSummary(
               totals: totals,
               macroGoals: store.profile,
-              goal: (store.profile['calorieGoal'] as num? ?? 2000).toDouble(),
-            ),
-          if (mode == 'balance')
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Приёмы пищи за день'),
-                    Wrap(
-                      spacing: 8,
-                      children: mealSlots.entries
-                          .map(
-                            (s) => Chip(
-                              avatar: Icon(
-                                meals.any((e) => e.text('slot') == s.key)
-                                    ? Icons.check_circle
-                                    : Icons.circle_outlined,
-                                size: 18,
+              goal: (store.profile['calorieGoal'] …615 tokens truncated…    final scope = store.scope;
+                        final mealDate = date;
+                        final choice = await sheet<MealFoodChoice>(
+                          context,
+                          MealFoodPicker(
+                            title: slot.value,
+                            foods: [
+                              ...store.of(Kind.food),
+                              ...store.of(Kind.recipe),
+                            ],
+                          ),
+                        );
+                        if (choice == null || !context.mounted) return;
+                        if (scope != store.scope || !store.ready) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Аккаунт изменился. Откройте поиск заново.',
                               ),
-                              label: Text(s.value),
                             ),
-                          )
-                          .toList(),
+                          );
+                          return;
+                        }
+                        await perform(
+                          context,
+                          () => store.mutate(
+                            (d) => choice.saveTo(d, mealDate, slot.key),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                  ...meals
+                      .where((e) => e.text('slot') == slot.key)
+                      .map((e) => mealCard(e, false)),
+                ],
               ),
             ),
+          if (meals.any((e) => !mealSlots.containsKey(e.text('slot')))) ...[
+            const Section('Другие записи'),
+            ...meals
+                .where((e) => !mealSlots.containsKey(e.text('slot')))
+                .map((e) => mealCard(e, false)),
+          ],
           Section(
             'План на день',
             action: IconButton(
@@ -341,16 +356,6 @@ class _NutritionPageState extends State<NutritionPage> {
               'Запланируйте приём пищи. Кнопка с тарелкой перенесёт его в дневник.',
             ),
           ...plans.map((e) => mealCard(e, true)),
-          Section(
-            'Съедено',
-            action: IconButton(
-              tooltip: 'Записать питание',
-              onPressed: () => editMeal(context, date),
-              icon: const Icon(Icons.add),
-            ),
-          ),
-          if (meals.isEmpty) const EmptyCard('Пока нет записей за этот день'),
-          ...meals.map((e) => mealCard(e, false)),
           const Section('Вода'),
           Card(
             child: Padding(
