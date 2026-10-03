@@ -22,7 +22,7 @@ Entry dinnerPlan() => Entry(
 );
 
 void main() {
-  test('failed consumption preserves the plan across restart and retry', () async {
+  test('failed consumption preserves plan on restart', () async {
     final local = MemoryLocal();
     final store = MiraStore(local);
     await store.open('qa');
@@ -81,7 +81,7 @@ void main() {
     expect(secondDevice.of(Kind.meal).single.toJson(), meal.toJson());
   });
 
-  test('conflicting devices do not silently merge duplicate consumed meals', () async {
+  test('device conflict does not merge duplicate meals', () async {
     final cloud = MemoryCloud();
     final first = MiraStore(MemoryLocal());
     final second = MiraStore(MemoryLocal());
@@ -102,9 +102,7 @@ void main() {
     expect(second.of(Kind.meal).single.text('consumedVia'), 'nutrition');
   });
 
-  testWidgets('Today leaves dinner planned until its consumption button', (
-    tester,
-  ) async {
+  testWidgets('Today consumes only on its button', (tester) async {
     await initializeDateFormatting('ru');
     final store = MiraStore(MemoryLocal());
     await store.open('qa');
