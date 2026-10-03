@@ -461,6 +461,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           TextButton(
             onPressed: () async {
+              final deletionScope = store.scope;
+              final deletionUserId = user.id;
               if (await confirm(
                     context,
                     'Удалить аккаунт навсегда?',
@@ -468,22 +470,31 @@ class _ProfilePageState extends State<ProfilePage> {
                   ) &&
                   context.mounted) {
                 await perform(context, () async {
-                  final response = await client!.functions.invoke(
+                  if (!store.ready ||
+                      store.scope != deletionScope ||
+                      client!.auth.currentUser?.id != deletionUserId) {
+                    throw StateError('Аккаунт изменился. Повторите действие.');
+                  }
+                  final cleared = store.document.clone()
+                    ..entries.clear()
+                    ..chat.clear()
+                    ..profile.clear();
+                  final response = await client.functions.invoke(
                     'delete-account',
                   );
                   if (response.status != 200) {
                     throw StateError('Не удалось удалить аккаунт');
                   }
-                  await store.local.write(
-                    store.scope,
-                    StoredDocument(
-                      store.document.clone()
-                        ..entries.clear()
-                        ..chat.clear()
-                        ..profile.clear(),
-                    ).toJson(),
-                  );
-                  await client.auth.signOut();
+                  try {
+                    await store.local.write(
+                      deletionScope,
+                      StoredDocument(cleared).toJson(),
+                    );
+                  } finally {
+                    if (client.auth.currentUser?.id == deletionUserId) {
+                      await client.auth.signOut();
+                    }
+                  }
                 });
               }
             },
