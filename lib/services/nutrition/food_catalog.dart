@@ -59,8 +59,8 @@ class CatalogFood {
 class FoodCatalog {
   final List<CatalogFood> foods;
   FoodCatalog._(this.foods);
-  static Future<FoodCatalog>? _loaded;
-  static Future<FoodCatalog> load() => _loaded ??= _load();
+  static FoodCatalog? _cached;
+  static Future<FoodCatalog> load() async => _cached ??= await _load();
   static Future<FoodCatalog> _load() async => FoodCatalog.fromJson(
     jsonDecode(await rootBundle.loadString('assets/data/usda_foods.json'))
         as Map<String, dynamic>,
