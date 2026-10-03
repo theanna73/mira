@@ -91,10 +91,18 @@ void main() {
     await tester.tap(find.text('Питание').last);
     await tester.pumpAndSettle();
     await capture('06-diary');
-    await tester.ensureVisible(find.byTooltip('Добавить: Перекус'));
+    await tester.scrollUntilVisible(
+      find.byTooltip('Добавить: Перекус'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await capture('09-meal-groups');
-    await tester.ensureVisible(find.text('Продукты'));
+    await tester.scrollUntilVisible(
+      find.text('Продукты'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Продукты'));
     await capture('01-products');
