@@ -36,7 +36,7 @@ class _FoodCatalogPickerState extends State<FoodCatalogPicker> {
               ),
             ],
           ),
-          const Text('USDA · на 100 г · работает без интернета'),
+          const Text('USDA · 62 продукта · на 100 г'),
           const SizedBox(height: 16),
           TextField(
             decoration: const InputDecoration(
@@ -66,15 +66,17 @@ class _FoodCatalogPickerState extends State<FoodCatalogPicker> {
                     ),
                   );
                 }
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
+                }
                 final foods = snapshot.data!.search(query);
-                if (foods.isEmpty)
+                if (foods.isEmpty) {
                   return const Center(
                     child: Text(
                       'В этом справочнике нет такого продукта. Можно добавить значения с упаковки вручную.',
                     ),
                   );
+                }
                 return ListView.builder(
                   itemCount: foods.length,
                   itemBuilder: (context, index) {

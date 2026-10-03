@@ -245,7 +245,7 @@ class _RecipeEditorState extends State<RecipeEditor> {
                         context,
                         const FoodCatalogPicker(),
                       );
-                      if (food == null || !mounted) return;
+                      if (food == null || !context.mounted) return;
                       if (ownerScope != StoreScope.of(context).scope) return;
                       setState(
                         () => ingredients.add({

@@ -10,6 +10,10 @@ import 'package:mira/app/app.dart';
 import 'package:mira/app/store.dart';
 import 'package:mira/app/theme.dart';
 import 'package:mira/features/nutrition/food_catalog_picker.dart';
+import 'package:mira/features/nutrition/recipe_editor.dart';
+import 'package:mira/services/nutrition/food_catalog.dart';
+import 'package:mira/shared/models/entry.dart';
+import 'package:mira/shared/widgets/common.dart';
 import 'store_test.dart' show MemoryLocal;
 
 void main() {
@@ -95,6 +99,46 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Куриная грудка без кожи · сырая'));
     await capture('02-catalogue');
+    final catalog = FoodCatalog.fromJson(
+      jsonDecode(File('assets/data/usda_foods.json').readAsStringSync())
+          as Map<String, dynamic>,
+    );
+    final chicken = catalog.foods.first.toEntry();
+    await store.put(chicken);
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundary,
+        child: StoreScope(
+          store: store,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: miraTheme(Brightness.light),
+            home: Scaffold(
+              body: SafeArea(
+                child: RecipeEditor(
+                  entry: Entry(
+                    kind: Kind.recipe,
+                    title: 'Куриная грудка',
+                    data: {
+                      'servings': 2,
+                      'instructions': 'Запечь до готовности.',
+                      'ingredients': [
+                        {
+                          'foodId': chicken.id,
+                          'title': chicken.title,
+                          'grams': 200,
+                        },
+                      ],
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await capture('03-recipe');
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

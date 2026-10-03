@@ -50,6 +50,10 @@ Future<void> editFood(BuildContext context, [Entry? entry]) => sheet(
         data: {
           ...e.data,
           'nutritionKnown': completeNutrition(e),
+          if (e.data['nutritionSource'] is Map &&
+              nutritionKeys.any((key) => entry?.data[key] != e.data[key]) &&
+              !e.text('notes').contains('БЖУ изменены вручную.'))
+            'notes': '${e.text('notes')}\nБЖУ изменены вручную.',
           if (e.data['nutritionSource'] is Map)
             'nutritionSource': {
               ...Map<String, dynamic>.from(e.data['nutritionSource'] as Map),
