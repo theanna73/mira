@@ -1,6 +1,7 @@
 import { conversationHistory, systemPrompt } from "./conversation.ts";
 import { adminClient, authenticate, cors, json, limitedJson } from "../_shared/http.ts";
-import { suggestionSchema, validSuggestion, validDate, groundedAction } from "./schema.ts";
+import { suggestionSchema, validDate } from "./schema.ts";
+import { prepareSuggestion } from "./suggestion.ts";
 
 Deno.serve(async (request) => {
   let headers: Headers;
@@ -31,26 +32,30 @@ Deno.serve(async (request) => {
       const fields = ["date", "start", "end", "done", "category", "color", "season", "items", "occasion", "outfitId", "worn", "sourceId", "slot", "quantity", "calories", "protein", "fat", "carbs", "servings", "ingredients", "amount", "unit", "expiry", "opened", "openMonths", "usedUp", "nutritionKnown", "mealTime"];
       return { id: entry.id, kind: entry.kind, title: entry.title, data: Object.fromEntries(fields.filter((k) => data?.[k] !== undefined).map((k) => [k, data![k]])) };
     });
+    const deadline = Date.now() + 45000;
+    let suggestion;
+    try {
+    suggestion = await prepareSuggestion(async (feedback) => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) throw new Error("AI deadline exceeded");
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST", headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }, signal: AbortSignal.timeout(45000),
+      method: "POST", headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }, signal: AbortSignal.timeout(remaining),
       body: JSON.stringify({ model, store: false, max_completion_tokens: 5000,
-        messages: [{ role: "system", content: systemPrompt },
+        messages: [{ role: "system", content: systemPrompt + "\nПустой каталог продуктов и рецептов не запрещает новый рецепт: используй create_recipe, foodId: пустая строка для ингредиентов без записи kind=food. ID упаковки supply/pantry нельзя использовать как foodId. Для ещё не сохранённого блюда нельзя использовать plan_meal; не ссылайся на выдуманные рецепты из истории." },
           { role: "user", content: JSON.stringify({ context: body.context, today: body.date, profile, records, weather: body.weather }) },
           ...history,
-          { role: "user", content: body.question }],
+          { role: "user", content: body.question },
+          ...(feedback ? [{ role: "user", content: feedback }] : [])],
         response_format: { type: "json_schema", json_schema: { name: "mira_suggestion", strict: true, schema: suggestionSchema } },
       }),
     });
-    if (!response.ok) return json({ error: "AI provider unavailable" }, 502, headers);
+    if (!response.ok) throw new Error("AI provider unavailable");
     const result = await response.json();
     const content = result.choices?.[0]?.message?.content;
-    if (!content) return json({ error: "No suggestion returned" }, 502, headers);
-    const suggestion = JSON.parse(content);
-    if (!validSuggestion(suggestion)) return json({ error: "Invalid suggestion returned" }, 502, headers);
-    const actions = suggestion.actions.filter((action: Record<string, unknown>) => groundedAction(action, records, profile.modules));
-    if (actions.length !== suggestion.actions.length) {
-      suggestion.message = actions.length === 0 ? "Не удалось подготовить изменения: предложение содержит недоступные данные. Ничего не сохранено. Попросите новый вариант из ваших вещей или рецепт с указанными ингредиентами." : "Подготовлены доступные действия ниже. Часть предложения ссылается на недоступные данные и исключена. Ничего не сохранено — подтвердите нужные карточки.";
-    }
-    return json({ message: suggestion.message, actions }, 200, headers);
+    if (!content) throw new Error("No suggestion returned");
+    return JSON.parse(content);
+    }, records, profile.modules);
+    } catch { return json({ error: "AI provider unavailable or invalid suggestion" }, 502, headers); }
+    return json(suggestion, 200, headers);
   } catch { return json({ error: "Service unavailable" }, 503, headers); }
 });
