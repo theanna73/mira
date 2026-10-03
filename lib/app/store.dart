@@ -14,6 +14,8 @@ class MiraStore extends ChangeNotifier {
   MiraDocument document = MiraDocument();
   int revision = 0;
   bool dirty = false, syncing = false, conflict = false, ready = false;
+  // A missing local cache does not mean this is a new cloud account.
+  bool awaitingCloudProfile = false;
   String? error;
   Future<void> _queue = Future.value();
   MiraStore(this.local);
@@ -52,6 +54,7 @@ class MiraStore extends ChangeNotifier {
     document = stored.document;
     revision = stored.revision;
     dirty = stored.dirty;
+    awaitingCloudProfile = repository != null && raw == null;
     ready = true;
     notifyListeners();
     if (synchronize) {
@@ -154,14 +157,16 @@ class MiraStore extends ChangeNotifier {
           scope,
           StoredDocument(document, revision: revision, dirty: dirty).toJson(),
         );
+        awaitingCloudProfile = false;
         error = null;
       } on SyncConflict {
         conflict = true;
         error =
             'Данные изменились на другом устройстве. Выберите версию в профиле.';
       } catch (_) {
-        error =
-            'Облако недоступно. Изменения сохранены на устройстве; повторите синхронизацию позже.';
+        error = awaitingCloudProfile
+            ? 'Не удалось загрузить профиль. Проверьте интернет: MIRA повторит загрузку автоматически.'
+            : 'Облако недоступно. Изменения сохранены на устройстве; повторите синхронизацию позже.';
       }
     });
     _queue = job.catchError((Object e) {
