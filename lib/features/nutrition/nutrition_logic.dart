@@ -24,7 +24,14 @@ Map<String, dynamic> nutritionSnapshot(Entry source, double quantity) {
   if (values.values.any((value) => !value.isFinite)) {
     throw const FormatException('Слишком большое количество или значение БЖУ');
   }
-  return {'nutritionKnown': known, ...values};
+  return {
+    'nutritionKnown': known,
+    ...values,
+    if (source.data['nutritionSource'] is Map)
+      'nutritionSource': Map<String, dynamic>.from(
+        source.data['nutritionSource'] as Map,
+      ),
+  };
 }
 
 Entry makeRecipe(
