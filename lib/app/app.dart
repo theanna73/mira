@@ -252,7 +252,7 @@ class _MiraShellState extends State<MiraShell> {
             ),
           ),
         ),
-        floatingActionButton: selected == 'profile'
+        floatingActionButton: selected == 'profile' || selected == 'nutrition'
             ? null
             : FloatingActionButton(
                 tooltip: 'Спросить MIRA',

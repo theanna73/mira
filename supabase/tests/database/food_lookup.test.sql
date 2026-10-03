@@ -1,0 +1,16 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+set search_path = public, extensions;
+select plan(6);
+set local role authenticated;
+select throws_ok($$select public.consume_food_lookup_request()$$, '42501', 'permission denied for function consume_food_lookup_request', 'users cannot bypass or reset lookup quota');
+set local role anon;
+select throws_ok($$select public.consume_food_lookup_request()$$, '42501', 'permission denied for function consume_food_lookup_request', 'anonymous callers cannot consume quota');
+set local role service_role;
+select is(public.consume_food_lookup_request(), true, 'first service lookup reserves capacity');
+select is(public.consume_food_lookup_request(), false, 'immediate repeated lookup is rejected');
+update mira_internal.food_lookup_quota set next_allowed_at = clock_timestamp() - interval '1 second';
+select is(public.consume_food_lookup_request(), true, 'expired reservation permits next lookup');
+select is(public.consume_food_lookup_request(), false, 'reservation is shared across callers');
+select * from finish();
+rollback;

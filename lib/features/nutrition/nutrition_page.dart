@@ -7,9 +7,13 @@ import '../../shared/widgets/editor.dart';
 import 'nutrition_logic.dart';
 import 'recipe_editor.dart';
 import 'nutrition_summary.dart';
+import 'meal_food_picker.dart';
+import '../../shared/widgets/ai_panel.dart';
 import '../supplies/expiry_logic.dart';
 import '../../services/nutrition/food_catalog.dart';
 import 'food_catalog_picker.dart';
+import 'barcode_food_picker.dart';
+import '../../services/nutrition/barcode_food.dart';
 
 const mealSlots = {
   'breakfast': 'Завтрак',
@@ -234,7 +238,12 @@ class _NutritionPageState extends State<NutritionPage> {
     );
     return PageBody(
       title: 'Питание',
-      subtitle: 'Планируй так, как удобно тебе',
+      subtitle: '',
+      action: IconButton(
+        tooltip: 'Спросить MIRA',
+        onPressed: () => sheet(context, const AiPanel(module: 'nutrition')),
+        icon: const Icon(Icons.auto_awesome_outlined),
+      ),
       children: [
         ChipStrip(
           spacing: 8,
@@ -296,7 +305,7 @@ class _NutritionPageState extends State<NutritionPage> {
             NutritionSummary(
               totals: totals,
               macroGoals: store.profile,
-              goal: (store.profile['calorieGoal'] as num? ?? 2000).toDouble(),
+              goal: (store.profile['calorieGoal'] as num? ?? 0).toDouble(),
             ),
           if (mode == 'balance')
             Card(
@@ -326,6 +335,73 @@ class _NutritionPageState extends State<NutritionPage> {
                 ),
               ),
             ),
+          const Section('Дневник питания'),
+          for (final slot in mealSlots.entries)
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    leading: Icon(switch (slot.key) {
+                      'breakfast' => Icons.wb_sunny_outlined,
+                      'lunch' => Icons.restaurant_outlined,
+                      'dinner' => Icons.nights_stay_outlined,
+                      _ => Icons.apple_outlined,
+                    }),
+                    title: Text(slot.value),
+                    subtitle: Text(
+                      meals.any((e) => e.text('slot') == slot.key)
+                          ? '${meals.where((e) => e.text('slot') == slot.key && knownNutrition(e)).fold(0.0, (sum, e) => sum + e.number('calories')).toStringAsFixed(0)} ккал · съедено${meals.any((e) => e.text('slot') == slot.key && !knownNutrition(e)) ? ' · есть неизвестные БЖУ' : ''}'
+                          : 'Добавить еду',
+                    ),
+                    trailing: IconButton(
+                      tooltip: 'Добавить: ${slot.value}',
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () async {
+                        final scope = store.scope;
+                        final mealDate = date;
+                        final choice = await sheet<MealFoodChoice>(
+                          context,
+                          MealFoodPicker(
+                            title: slot.value,
+                            foods: [
+                              ...store.of(Kind.food),
+                              ...store.of(Kind.recipe),
+                            ],
+                          ),
+                        );
+                        if (choice == null || !context.mounted) return;
+                        if (scope != store.scope || !store.ready) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Аккаунт изменился. Откройте поиск заново.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+                        await perform(
+                          context,
+                          () => store.mutate(
+                            (d) => choice.saveTo(d, mealDate, slot.key),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  ...meals
+                      .where((e) => e.text('slot') == slot.key)
+                      .map((e) => mealCard(e, false)),
+                ],
+              ),
+            ),
+          if (meals.any((e) => !mealSlots.containsKey(e.text('slot')))) ...[
+            const Section('Другие записи'),
+            ...meals
+                .where((e) => !mealSlots.containsKey(e.text('slot')))
+                .map((e) => mealCard(e, false)),
+          ],
           Section(
             'План на день',
             action: IconButton(
@@ -339,16 +415,6 @@ class _NutritionPageState extends State<NutritionPage> {
               'Запланируйте приём пищи. Кнопка с тарелкой перенесёт его в дневник.',
             ),
           ...plans.map((e) => mealCard(e, true)),
-          Section(
-            'Съедено',
-            action: IconButton(
-              tooltip: 'Записать питание',
-              onPressed: () => editMeal(context, date),
-              icon: const Icon(Icons.add),
-            ),
-          ),
-          if (meals.isEmpty) const EmptyCard('Пока нет записей за этот день'),
-          ...meals.map((e) => mealCard(e, false)),
           const Section('Вода'),
           Card(
             child: Padding(
@@ -418,6 +484,33 @@ class _NutritionPageState extends State<NutritionPage> {
                     content: Text(
                       'Аккаунт изменился. Откройте справочник заново.',
                     ),
+                  ),
+                );
+                return;
+              }
+              await perform(
+                context,
+                () => store.mutate((d) {
+                  final entry = food.forDocument(d);
+                  if (d.find(entry.id) == null) d.put(entry);
+                }),
+              );
+            },
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.qr_code),
+            label: const Text('Ввести штрихкод'),
+            onPressed: () async {
+              final scope = store.scope;
+              final food = await sheet<BarcodeFood>(
+                context,
+                const BarcodeFoodPicker(),
+              );
+              if (food == null || !context.mounted) return;
+              if (store.scope != scope || !store.ready) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Аккаунт изменился. Откройте поиск заново.'),
                   ),
                 );
                 return;

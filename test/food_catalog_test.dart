@@ -24,7 +24,8 @@ void main() {
   test(
     'official catalogue has complete nutrients and distinct cooking states',
     () {
-      expect(catalog.foods.length, 62);
+      expect(catalog.foods.length, greaterThan(7000));
+      expect(catalog.search('творог').length, greaterThan(5));
       expect(food('171077').nutrition['calories'], 120);
       expect(food('171477').nutrition['calories'], 165);
       expect(catalog.search('КУРИНОЕ филе').length, 3);
@@ -131,7 +132,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Ингредиент из справочника'));
         await tester.runAsync(() async {
-          await Future<void>.delayed(const Duration(milliseconds: 50));
+          await FoodCatalog.load();
         });
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField).last, 'грудка сырая');

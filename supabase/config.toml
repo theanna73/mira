@@ -6,3 +6,5 @@ project_id = "mira"
 verify_jwt = false
 [functions.delete-account]
 verify_jwt = false
+[functions.food-lookup]
+verify_jwt = false

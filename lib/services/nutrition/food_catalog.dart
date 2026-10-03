@@ -4,7 +4,10 @@ import '../../shared/models/entry.dart';
 import '../database/document.dart';
 
 class CatalogFood {
-  final String fdcId, title, description, publicationDate, release;
+  final String fdcId, title, description, publicationDate, release, aliases;
+  late final List<String> searchWords = FoodCatalog.normalize(
+    '$title $description $aliases ${FoodCatalog.extraAliases(fdcId)}',
+  ).split(' ');
   final Map<String, double> nutrition;
   CatalogFood._(
     this.fdcId,
@@ -13,6 +16,7 @@ class CatalogFood {
     this.publicationDate,
     this.release,
     this.nutrition,
+    this.aliases,
   );
 
   Entry toEntry() => Entry(
@@ -55,7 +59,9 @@ class CatalogFood {
 class FoodCatalog {
   final List<CatalogFood> foods;
   FoodCatalog._(this.foods);
-  static Future<FoodCatalog> load() async => FoodCatalog.fromJson(
+  static FoodCatalog? _cached;
+  static Future<FoodCatalog> load() async => _cached ??= await _load();
+  static Future<FoodCatalog> _load() async => FoodCatalog.fromJson(
     jsonDecode(await rootBundle.loadString('assets/data/usda_foods.json'))
         as Map<String, dynamic>,
   );
@@ -96,6 +102,7 @@ class FoodCatalog {
           row['publicationDate'] as String,
           data['release'] as String,
           Map.unmodifiable(nutrition),
+          row['aliases'] as String? ?? '',
         ),
       );
     }
@@ -108,22 +115,20 @@ class FoodCatalog {
       .replaceAll(RegExp(r'[^a-zа-я0-9]+'), ' ')
       .trim();
 
+  static String extraAliases(String id) => switch (id) {
+    '171077' || '171477' || '171478' => 'курица куриная грудка куриное филе',
+    '170685' || '170686' => 'гречка гречневая крупа',
+    '168927' || '168928' => 'паста макароны спагетти',
+    '169705' => 'овес',
+    _ => '',
+  };
+
   List<CatalogFood> search(String query) {
     final terms = normalize(
       query,
     ).split(' ').where((t) => t.isNotEmpty).toList();
     return foods.where((food) {
-      final aliases = switch (food.fdcId) {
-        '171077' ||
-        '171477' ||
-        '171478' => 'курица куриная грудка куриное филе',
-        '170685' || '170686' => 'гречка гречневая крупа',
-        '168927' || '168928' => 'паста макароны спагетти',
-        '169705' => 'овес',
-        _ => '',
-      };
-      final text = normalize('${food.title} ${food.description} $aliases');
-      final words = text.split(' ');
+      final words = food.searchWords;
       return terms.every((term) => words.any((word) => word.startsWith(term)));
     }).toList();
   }

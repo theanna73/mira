@@ -15,6 +15,9 @@ import 'package:mira/services/nutrition/food_catalog.dart';
 import 'package:mira/shared/models/entry.dart';
 import 'package:mira/shared/widgets/common.dart';
 import 'store_test.dart' show MemoryLocal;
+import 'package:mira/features/nutrition/barcode_food_picker.dart';
+import 'package:mira/services/nutrition/barcode_food.dart';
+import 'package:mira/features/nutrition/meal_food_picker.dart';
 
 void main() {
   testWidgets('capture actual catalogue and entry point for visual approval', (
@@ -48,6 +51,7 @@ void main() {
           e.key,
         )..addFont(Future.value(ByteData.sublistView(bytes)))).load();
       }
+      await FoodCatalog.load();
       await Directory('.review/catalog').create(recursive: true);
     });
     final boundary = GlobalKey();
@@ -69,7 +73,15 @@ void main() {
 
     final store = MiraStore(MemoryLocal());
     await store.open('catalog-preview');
-    await store.setProfile({'onboarded': true, 'name': 'Аня'});
+    await store.setProfile({
+      'onboarded': true,
+      'name': 'Аня',
+      'nutritionMode': 'calories',
+      'calorieGoal': 1800,
+      'proteinGoal': 90,
+      'fatGoal': 60,
+      'carbsGoal': 225,
+    });
     await tester.pumpWidget(
       RepaintBoundary(
         key: boundary,
@@ -78,6 +90,20 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Питание').last);
+    await tester.pumpAndSettle();
+    await capture('06-diary');
+    await tester.scrollUntilVisible(
+      find.byTooltip('Добавить: Перекус'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await capture('09-meal-groups');
+    await tester.scrollUntilVisible(
+      find.text('Продукты'),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Продукты'));
     await capture('01-products');
@@ -92,7 +118,7 @@ void main() {
       ),
     );
     await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await FoodCatalog.load();
     });
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'куриное филе');
@@ -139,6 +165,62 @@ void main() {
       ),
     );
     await capture('03-recipe');
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundary,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: miraTheme(Brightness.light),
+          home: Scaffold(
+            body: SafeArea(
+              child: BarcodeFoodPicker(
+                lookup: (code) async => BarcodeFood.fromJson({
+                  'code': code,
+                  'title': 'Тестовый продукт',
+                  'brand': 'Пример карточки',
+                  'modified': '1',
+                  'basisGrams': 100,
+                  'calories': 100,
+                  'protein': 2,
+                  'fat': 0,
+                  'carbs': 23,
+                }),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await capture('04-barcode-empty');
+    await tester.enterText(find.byType(TextField), '3017624010701');
+    await tester.tap(find.text('Найти продукт'));
+    await capture('05-barcode-result');
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundary,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: miraTheme(Brightness.light),
+          home: Scaffold(
+            body: SafeArea(
+              child: MealFoodPicker(
+                title: 'Завтрак',
+                foods: const [],
+                catalog: Future.value(catalog),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'творог');
+    await capture('07-meal-search');
+    await tester.tap(find.text('Зернёный творог (cottage cheese) · 2%'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '150');
+    await capture('08-meal-quantity');
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }
