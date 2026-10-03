@@ -88,8 +88,15 @@ class MiraStore extends ChangeNotifier {
 
   Future<void> put(Entry e) => mutate((d) => d.put(e));
   Future<void> remove(String id) => mutate((d) => d.remove(id));
-  Future<void> setProfile(Map<String, dynamic> changes) =>
-      mutate((d) => d.profile.addAll(changes));
+  Future<void> setProfile(
+    Map<String, dynamic> changes, {
+    String? expectedScope,
+  }) => mutate((d) {
+    if (expectedScope != null && expectedScope != scope) {
+      throw StateError('Аккаунт изменился. Откройте форму заново.');
+    }
+    d.profile.addAll(changes);
+  });
   Future<void> toggleHabit(Entry habit, DateTime date) => mutate((d) {
     final logs = d
         .of(Kind.habitLog)

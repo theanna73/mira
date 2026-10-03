@@ -219,4 +219,20 @@ void main() {
       expect(first.sameContent(different), isFalse);
     },
   );
+  test('delayed profile form cannot write to a different account', () async {
+    final local = MemoryLocal();
+    final store = MiraStore(local);
+    await store.open('account-a');
+    final formScope = store.scope;
+    await store.open('account-b');
+    await store.setProfile({'name': 'B'});
+    await expectLater(
+      store.setProfile({'name': 'A'}, expectedScope: formScope),
+      throwsStateError,
+    );
+    expect(store.profile['name'], 'B');
+    final restarted = MiraStore(local);
+    await restarted.open('account-b');
+    expect(restarted.profile['name'], 'B');
+  });
 }
