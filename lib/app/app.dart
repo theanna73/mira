@@ -37,49 +37,56 @@ class _MiraAppState extends State<MiraApp> with WidgetsBindingObserver {
     widget.store.addListener(changed);
     unawaited(widget.store.sync());
     if (Config.cloudEnabled) {
-      auth = Supabase.instance.client.auth.onAuthStateChange.listen((state) {
-        if (state.event == AuthChangeEvent.passwordRecovery) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final context = navigator.currentContext;
-            if (context != null) {
-              sheet(context, const RecoveryPanel());
-            }
-          });
-        }
-        if (state.event == AuthChangeEvent.signedIn ||
-            state.event == AuthChangeEvent.signedOut ||
-            state.event == AuthChangeEvent.initialSession) {
-          final user = state.session?.user;
-          final scope = user?.id ?? 'guest';
-          if (scope != widget.store.scope || !widget.store.ready) {
-            widget.store.pauseForAccountChange();
-            accountQueue = accountQueue
-                .then((_) async {
-                  if ((Supabase.instance.client.auth.currentUser?.id ??
-                          'guest') !=
-                      scope) {
-                    return;
-                  }
-                  await widget.store.open(
-                    scope,
-                    synchronize: false,
-                    repository: user == null
-                        ? null
-                        : SupabaseRepository(
-                            Supabase.instance.client,
-                            userId: user.id,
-                          ),
-                  );
-                  unawaited(widget.store.sync());
-                })
-                .catchError((Object e) {
-                  widget.store.reportError(
-                    'Не удалось открыть данные аккаунта: $e',
-                  );
-                });
+      auth = Supabase.instance.client.auth.onAuthStateChange.listen(
+        (state) {
+          if (state.event == AuthChangeEvent.passwordRecovery) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final context = navigator.currentContext;
+              if (context != null) {
+                sheet(context, const RecoveryPanel());
+              }
+            });
           }
-        }
-      });
+          if (state.event == AuthChangeEvent.signedIn ||
+              state.event == AuthChangeEvent.signedOut ||
+              state.event == AuthChangeEvent.initialSession) {
+            final user = state.session?.user;
+            final scope = user?.id ?? 'guest';
+            if (scope != widget.store.scope || !widget.store.ready) {
+              widget.store.pauseForAccountChange();
+              accountQueue = accountQueue
+                  .then((_) async {
+                    if ((Supabase.instance.client.auth.currentUser?.id ??
+                            'guest') !=
+                        scope) {
+                      return;
+                    }
+                    await widget.store.open(
+                      scope,
+                      synchronize: false,
+                      repository: user == null
+                          ? null
+                          : SupabaseRepository(
+                              Supabase.instance.client,
+                              userId: user.id,
+                            ),
+                    );
+                    unawaited(widget.store.sync());
+                  })
+                  .catchError((Object e) {
+                    widget.store.reportError(
+                      'Не удалось открыть данные аккаунта: $e',
+                    );
+                  });
+            }
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          widget.store.reportError(
+            'Не удалось обновить вход. Проверьте интернет; сохранённые данные остаются на устройстве.',
+          );
+        },
+      );
     }
     syncTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
@@ -140,6 +147,7 @@ class _MiraAppState extends State<MiraApp> with WidgetsBindingObserver {
         builder: (context) {
           final store = StoreScope.of(context);
           if (!store.ready ||
+              store.awaitingCloudProfile ||
               (store.cloud != null &&
                   store.syncing &&
                   store.profile['onboarded'] != true)) {
