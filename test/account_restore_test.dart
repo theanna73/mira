@@ -88,7 +88,7 @@ void main() {
       await store.open('guest');
       expect(store.profile['name'], 'Гость');
       await store.open('account-b');
-      expect(store.profile['name'], isNull);
+      expect(store.profile['name'], isEmpty);
       await store.open('account-a');
       expect(store.profile['onboarded'], isTrue);
       expect(store.profile['name'], 'Аня');
