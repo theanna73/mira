@@ -5,6 +5,8 @@ import '../../shared/widgets/common.dart';
 import '../../shared/widgets/editor.dart';
 import 'nutrition_logic.dart';
 import 'recipe_editor.dart';
+import 'nutrition_summary.dart';
+import '../supplies/expiry_logic.dart';
 
 const mealSlots = {
   'breakfast': 'Завтрак',
@@ -74,6 +76,7 @@ Future<void> editMeal(
           required: true,
         ),
         const FieldSpec('date', 'Дата', type: FieldType.date, required: true),
+        const FieldSpec('mealTime', 'Время, например 19:00 (необязательно)'),
         const FieldSpec(
           'slot',
           'Приём пищи',
@@ -86,6 +89,12 @@ Future<void> editMeal(
         final selected = store.document.find(e.text('sourceId'));
         if (selected == null) {
           throw const FormatException('Выбранный продукт удалён');
+        }
+        if (e.text('mealTime').isNotEmpty &&
+            !RegExp(
+              r'^(?:[01]\d|2[0-3]):[0-5]\d$',
+            ).hasMatch(e.text('mealTime'))) {
+          throw const FormatException('Введите время в формате ЧЧ:ММ');
         }
         await store.put(
           e.copy(
@@ -116,9 +125,20 @@ Future<void> editPantry(BuildContext context, [Entry? entry]) => sheet(
         choices: {'g': 'г', 'ml': 'мл', 'pc': 'шт'},
       ),
       FieldSpec('expiry', 'Годен до', type: FieldType.date),
+      FieldSpec('opened', 'Дата открытия', type: FieldType.date),
+      FieldSpec(
+        'openMonths',
+        'Срок после открытия, месяцев',
+        type: FieldType.number,
+      ),
+      FieldSpec(
+        'notifyDays',
+        'Показать на Сегодня за столько дней',
+        type: FieldType.number,
+      ),
       FieldSpec('notes', 'Заметки'),
     ],
-    defaults: const {'unit': 'g'},
+    defaults: const {'unit': 'g', 'notifyDays': 7},
     save: StoreScope.of(context).put,
   ),
 );
@@ -154,7 +174,7 @@ class _NutritionPageState extends State<NutritionPage> {
       child: ListTile(
         title: Text(e.title),
         subtitle: Text(
-          '${mealSlots[e.text('slot')] ?? 'Приём пищи'} · ${e.number('quantity').toStringAsFixed(0)} ${e.text('unit')}',
+          '${mealSlots[e.text('slot')] ?? 'Приём пищи'} · ${e.number('quantity').toStringAsFixed(0)} ${e.text('unit')}${e.text('mealTime').isEmpty ? '' : ' · ${e.text('mealTime')}'}${e.data['nutritionKnown'] == false ? '\nБЖУ неизвестны' : ''}',
         ),
         onTap: () => editMeal(context, date, plan: plan, entry: e),
         leading: plan
@@ -175,7 +195,7 @@ class _NutritionPageState extends State<NutritionPage> {
       title: 'Питание',
       subtitle: 'Планируй так, как удобно тебе',
       children: [
-        Wrap(
+        ChipStrip(
           spacing: 8,
           children:
               {
@@ -216,7 +236,7 @@ class _NutritionPageState extends State<NutritionPage> {
                       setState(() => date = v);
                     }
                   },
-                  child: Text(DateFormat('d MMMM', 'ru').format(date)),
+                  child: Text(DateFormat('dd/MM', 'ru').format(date)),
                 ),
               ),
               IconButton(
@@ -227,28 +247,15 @@ class _NutritionPageState extends State<NutritionPage> {
               ),
             ],
           ),
+          if (meals.any((e) => e.data['nutritionKnown'] == false))
+            const EmptyCard(
+              'Есть блюда с неизвестными БЖУ: они не включены в итоги калорий. Добавьте данные ингредиентов.',
+            ),
           if (mode == 'calories')
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${totals.calories.toStringAsFixed(0)} / ${store.profile['calorieGoal'] ?? 2000} ккал',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Белки ${totals.protein.toStringAsFixed(1)} г · Жиры ${totals.fat.toStringAsFixed(1)} г · Углеводы ${totals.carbs.toStringAsFixed(1)} г',
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Цели задаются вручную. Данные продуктов вводятся с упаковки.',
-                    ),
-                  ],
-                ),
-              ),
+            NutritionSummary(
+              totals: totals,
+              macroGoals: store.profile,
+              goal: (store.profile['calorieGoal'] as num? ?? 2000).toDouble(),
             ),
           if (mode == 'balance')
             Card(
@@ -417,7 +424,9 @@ class _NutritionPageState extends State<NutritionPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Порций: ${e.number('servings')} · ${e.number('calories').toStringAsFixed(0)} ккал на порцию',
+                          e.data['nutritionKnown'] == false
+                              ? 'Порций: ${e.number('servings')} · БЖУ пока неизвестны'
+                              : 'Порций: ${e.number('servings')} · ${e.number('calories').toStringAsFixed(0)} ккал на порцию',
                         ),
                         Text(
                           (e.data['ingredients'] as List? ?? [])
@@ -489,7 +498,7 @@ class _NutritionPageState extends State<NutritionPage> {
                   child: ListTile(
                     title: Text(e.title),
                     subtitle: Text(
-                      '${e.number('amount')} ${{'g': 'г', 'ml': 'мл', 'pc': 'шт'}[e.text('unit')] ?? ''}${e.text('expiry').isEmpty ? '' : '\nГоден до ${e.text('expiry')}'}',
+                      '${e.number('amount')} ${{'g': 'г', 'ml': 'мл', 'pc': 'шт'}[e.text('unit')] ?? ''}${e.text('expiry').isEmpty ? '' : '\n${expiryLabel(e, DateTime.now())}'}',
                     ),
                     leading: Icon(
                       e.time('expiry')?.isBefore(DateTime.now()) == true

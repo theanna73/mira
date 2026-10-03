@@ -25,15 +25,15 @@ Deno.serve(async (request) => {
     if (rateError) return json({ error: "Service unavailable" }, 503, headers);
     if (!allowed) return json({ error: "Hourly limit reached" }, 429, headers);
     // Explicit allowlist: never transmit photos, email addresses or arbitrary profile keys.
-    const profile = Object.fromEntries(["modules", "preferences", "stylePreferences", "nutritionMode", "calorieGoal", "goal"].map((key) => [key, document.profile?.[key]]));
-    const records = document.entries.filter((e) => ["event", "task", "wardrobe", "outfit", "plannedOutfit", "food", "recipe", "meal", "mealPlan", "pantry"].includes(String(e.kind))).slice(-400).map((entry) => {
+    const profile = Object.fromEntries(["modules", "preferences", "stylePreferences", "nutritionMode", "calorieGoal", "goal", "allergies", "dislikedFoods", "assistantMode"].map((key) => [key, document.profile?.[key]]));
+    const records = document.entries.filter((e) => ["event", "task", "wardrobe", "outfit", "plannedOutfit", "food", "recipe", "meal", "mealPlan", "pantry"].includes(String(e.kind)) || (e.kind === "supply" && (e.data as Record<string, unknown> | undefined)?.category === "food")).slice(-400).map((entry) => {
       const data = entry.data as Record<string, unknown> | undefined;
-      const fields = ["date", "start", "end", "done", "category", "color", "season", "items", "occasion", "outfitId", "worn", "sourceId", "slot", "quantity", "calories", "protein", "fat", "carbs", "servings", "ingredients", "amount", "unit", "expiry"];
+      const fields = ["date", "start", "end", "done", "category", "color", "season", "items", "occasion", "outfitId", "worn", "sourceId", "slot", "quantity", "calories", "protein", "fat", "carbs", "servings", "ingredients", "amount", "unit", "expiry", "opened", "openMonths", "usedUp", "nutritionKnown", "mealTime"];
       return { id: entry.id, kind: entry.kind, title: entry.title, data: Object.fromEntries(fields.filter((k) => data?.[k] !== undefined).map((k) => [k, data![k]])) };
     });
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST", headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }, signal: AbortSignal.timeout(45000),
-      body: JSON.stringify({ model, store: false, max_completion_tokens: 2000,
+      body: JSON.stringify({ model, store: false, max_completion_tokens: 5000,
         messages: [{ role: "system", content: systemPrompt },
           { role: "user", content: JSON.stringify({ context: body.context, today: body.date, profile, records, weather: body.weather }) },
           ...history,
@@ -49,7 +49,7 @@ Deno.serve(async (request) => {
     if (!validSuggestion(suggestion)) return json({ error: "Invalid suggestion returned" }, 502, headers);
     const actions = suggestion.actions.filter((action: Record<string, unknown>) => groundedAction(action, records, profile.modules));
     if (actions.length !== suggestion.actions.length) {
-      suggestion.message += "\n\nНекоторые действия ссылаются на недоступные данные и не могут быть сохранены. Уточните запрос с учётом текущего гардероба или продуктов.";
+      suggestion.message = actions.length === 0 ? "Не удалось подготовить изменения: предложение содержит недоступные данные. Ничего не сохранено. Попросите новый вариант из ваших вещей или рецепт с указанными ингредиентами." : "Подготовлены доступные действия ниже. Часть предложения ссылается на недоступные данные и исключена. Ничего не сохранено — подтвердите нужные карточки.";
     }
     return json({ message: suggestion.message, actions }, 200, headers);
   } catch { return json({ error: "Service unavailable" }, 503, headers); }

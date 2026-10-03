@@ -98,11 +98,30 @@ class MiraDocument {
     if (e.kind == Kind.plannedOutfit) {
       ref('outfitId', {Kind.outfit});
     }
+    if (e.kind == Kind.listItem) {
+      ref('listId', {Kind.shoppingList});
+    }
     if (e.kind == Kind.habitLog) {
       ref('habitId', {Kind.habit});
     }
     if (e.kind == Kind.meal || e.kind == Kind.mealPlan) {
       ref('sourceId', {Kind.food, Kind.recipe});
+    }
+    for (final key in ['expiry', 'opened', 'lastDone']) {
+      if (e.text(key).isNotEmpty) {
+        final date = e.time(key);
+        if (date == null ||
+            dayKey(date) != e.text(key) ||
+            date.year < 2000 ||
+            date.year > 2100) {
+          throw const FormatException('Некорректная дата');
+        }
+      }
+    }
+    if (e.number('openMonths') > 120 || e.number('openMonths') % 1 != 0) {
+      throw const FormatException(
+        'Срок после открытия: целое число от 0 до 120 месяцев',
+      );
     }
     for (final key in [
       'calories',
@@ -113,6 +132,9 @@ class MiraDocument {
       'amount',
       'price',
       'servings',
+      'openMonths',
+      'notifyDays',
+      'intervalDays',
     ]) {
       if (e.data.containsKey(key) &&
           (!e.number(key).isFinite || e.number(key) < 0)) {
@@ -127,7 +149,8 @@ class MiraDocument {
       (e) =>
           e.id == id ||
           (e.text('outfitId') == id && !e.flag('worn')) ||
-          e.text('habitId') == id,
+          e.text('habitId') == id ||
+          e.text('listId') == id,
     );
     if (removed?.kind == Kind.outfit) {
       for (final planned in of(
@@ -167,7 +190,10 @@ class MiraDocument {
   }
 
   NutritionTotals totals(DateTime date) => of(Kind.meal)
-      .where((e) => e.text('date') == dayKey(date))
+      .where(
+        (e) =>
+            e.text('date') == dayKey(date) && e.data['nutritionKnown'] != false,
+      )
       .fold(
         const NutritionTotals(),
         (total, e) => total + NutritionTotals.fromEntry(e),

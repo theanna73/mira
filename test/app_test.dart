@@ -16,7 +16,15 @@ void main() {
     await tester.pumpWidget(MiraApp(store: store));
     await tester.pumpAndSettle();
     expect(find.text('Твой день в гармонии'), findsOneWidget);
+    await tester.tap(find.text('Начать ›'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Далее ›'));
+    await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Аня');
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('Далее ›'));
+      await tester.pumpAndSettle();
+    }
     await tester.scrollUntilVisible(
       find.text('Начать мой день'),
       200,

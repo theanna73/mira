@@ -135,10 +135,14 @@ class _MiraAppState extends State<MiraApp> with WidgetsBindingObserver {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: miraTheme(Brightness.light),
       darkTheme: miraTheme(Brightness.dark),
+      themeMode: ThemeMode.light,
       home: Builder(
         builder: (context) {
           final store = StoreScope.of(context);
-          if (!store.ready) {
+          if (!store.ready ||
+              (store.cloud != null &&
+                  store.syncing &&
+                  store.profile['onboarded'] != true)) {
             return Scaffold(
               body: Center(
                 child: store.error == null
@@ -230,7 +234,9 @@ class _MiraShellState extends State<MiraShell> {
                       'style' => const StylePage(),
                       'nutrition' => const NutritionPage(),
                       'profile' => ProfilePage(reminders: widget.reminders),
-                      _ => const TodayPage(),
+                      _ => TodayPage(
+                        onNavigate: (key) => setState(() => selected = key),
+                      ),
                     },
                   ),
                 ],
@@ -243,7 +249,7 @@ class _MiraShellState extends State<MiraShell> {
             : FloatingActionButton(
                 tooltip: 'Спросить MIRA',
                 onPressed: () => sheet(context, AiPanel(module: selected)),
-                child: const Text('✦', style: TextStyle(fontSize: 28)),
+                child: const Icon(Icons.auto_awesome_outlined),
               ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: sections.keys.toList().indexOf(selected),

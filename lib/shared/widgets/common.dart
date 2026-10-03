@@ -24,6 +24,31 @@ class PageBody extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
     children: [
       Row(
+        children: [
+          Text(
+            'MIRA',
+            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+              fontSize: 38,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Text(
+              'ТВОЙ ДЕНЬ\nВ ГАРМОНИИ',
+              style: TextStyle(
+                fontSize: 9,
+                letterSpacing: 1.4,
+                color: Color(0xFF888780),
+              ),
+            ),
+          ),
+          if (action != null) action!,
+        ],
+      ),
+      const SizedBox(height: 25),
+      Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
@@ -38,10 +63,9 @@ class PageBody extends StatelessWidget {
               ],
             ),
           ),
-          if (action != null) action!,
         ],
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 22),
       ...children,
     ],
   );
@@ -127,3 +151,22 @@ Future<bool> confirm(
       ),
     ) ??
     false;
+
+class ChipStrip extends StatelessWidget {
+  final List<Widget> children;
+  final double spacing;
+  const ChipStrip({super.key, required this.children, this.spacing = 8});
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      children: [
+        for (final child in children)
+          Padding(
+            padding: EdgeInsets.only(right: spacing),
+            child: child,
+          ),
+      ],
+    ),
+  );
+}

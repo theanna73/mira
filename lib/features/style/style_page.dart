@@ -136,7 +136,13 @@ Future<void> planOutfit(BuildContext context, Entry outfit) async {
 
 class ClothingPhoto extends StatefulWidget {
   final String path;
-  const ClothingPhoto(this.path, {super.key});
+  final double width, height;
+  const ClothingPhoto(
+    this.path, {
+    super.key,
+    this.width = 68,
+    this.height = 80,
+  });
   @override
   State<ClothingPhoto> createState() => _ClothingPhotoState();
 }
@@ -163,8 +169,8 @@ class _ClothingPhotoState extends State<ClothingPhoto> {
   );
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: 68,
-    height: 80,
+    width: widget.width,
+    height: widget.height,
     child: ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: FutureBuilder(
@@ -276,7 +282,7 @@ class _StylePageState extends State<StylePage> {
         if (kind != Kind.outfit)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: Wrap(
+            child: ChipStrip(
               spacing: 6,
               children: {'all': 'Все', ...clothingCategories}.entries
                   .map(
@@ -309,109 +315,281 @@ class _StylePageState extends State<StylePage> {
                 ? 'Добавьте вещи и соберите первый образ'
                 : 'Добавьте вещь, чтобы начать',
           ),
-        ...entries.map(
-          (e) => Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: kind == Kind.wardrobe && e.text('photo').isNotEmpty
-                        ? ClothingPhoto(e.text('photo'))
-                        : Icon(
-                            kind == Kind.outfit
-                                ? Icons.auto_awesome_outlined
-                                : Icons.checkroom_outlined,
-                          ),
-                    title: Text('${e.flag('favorite') ? '♡ ' : ''}${e.title}'),
-                    subtitle: Text(
-                      kind == Kind.outfit
-                          ? e
-                                .ids('items')
-                                .map(
-                                  (id) => store.document.find(id)?.title ?? '',
-                                )
-                                .join(' · ')
-                          : '${clothingCategories[e.text('category')] ?? 'Вещь'} · ${e.text('color')}\n${e.number('price').toStringAsFixed(0)} ₽${kind == Kind.wardrobe ? ' · надето ${store.document.wears(e.id)} раз\nЦена носки: ${store.document.costPerWear(e) == null ? 'ещё нет носок' : '${store.document.costPerWear(e)!.toStringAsFixed(0)} ₽'}' : ''}',
-                    ),
-                    onTap: () => kind == Kind.outfit
-                        ? editOutfit(context, e)
-                        : editClothing(context, kind, e),
-                    trailing: IconButton(
-                      tooltip: 'Удалить',
-                      onPressed: () async {
-                        if (await confirm(
-                              context,
-                              'Удалить?',
-                              '${e.title}. Связанные планы образов будут удалены, вещи останутся в гардеробе.',
-                            ) &&
-                            context.mounted) {
-                          await perform(context, () => store.remove(e.id));
-                        }
-                      },
-                      icon: const Icon(Icons.delete_outline),
-                    ),
-                  ),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      if (kind == Kind.wardrobe)
-                        TextButton.icon(
-                          onPressed: () => photo(e),
-                          icon: const Icon(Icons.add_a_photo_outlined),
-                          label: const Text('Фото'),
-                        ),
-                      if (kind == Kind.outfit) ...[
-                        TextButton.icon(
-                          onPressed: () => planOutfit(context, e),
-                          icon: const Icon(Icons.calendar_today_outlined),
-                          label: const Text('На дату'),
-                        ),
-                        IconButton(
-                          tooltip: 'Избранное',
-                          onPressed: () => perform(
-                            context,
-                            () => store.put(
-                              e.copy(
-                                data: {
-                                  ...e.data,
-                                  'favorite': !e.flag('favorite'),
-                                },
-                              ),
+        if (kind == Kind.wardrobe) ...[
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAE5DB),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Образы из твоих вещей',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(fontSize: 26),
+                ),
+                const SizedBox(height: 10),
+                const Text('Твой стиль начинается с твоего гардероба'),
+                const SizedBox(height: 14),
+                FilledButton(
+                  onPressed: () => editOutfit(context),
+                  child: const Text('Создать образ ›'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) => Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: entries
+                  .map(
+                    (e) => SizedBox(
+                      width: (constraints.maxWidth - 12) / 2,
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(24),
+                          onTap: () => editClothing(context, kind, e),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Stack(
+                                  children: [
+                                    Container(
+                                      height: 136,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF0EDE7),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: e.text('photo').isEmpty
+                                          ? const Icon(
+                                              Icons.checkroom_outlined,
+                                              size: 48,
+                                              color: Color(0xFF888F87),
+                                            )
+                                          : ClothingPhoto(
+                                              e.text('photo'),
+                                              width:
+                                                  (constraints.maxWidth - 60) /
+                                                  2,
+                                              height: 136,
+                                            ),
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: PopupMenuButton<String>(
+                                        onSelected: (v) async {
+                                          if (v == 'photo') {
+                                            await photo(e);
+                                          }
+                                          if (v == 'delete' &&
+                                              context.mounted &&
+                                              await confirm(
+                                                context,
+                                                'Удалить вещь?',
+                                                e.title,
+                                              ) &&
+                                              context.mounted) {
+                                            await perform(
+                                              context,
+                                              () => store.remove(e.id),
+                                            );
+                                          }
+                                        },
+                                        itemBuilder: (_) => const [
+                                          PopupMenuItem(
+                                            value: 'photo',
+                                            child: Text('Добавить фото'),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 'delete',
+                                            child: Text('Удалить'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  e.title,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${clothingCategories[e.text('category')] ?? 'Вещь'} · ${store.document.wears(e.id)} носок',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF858980),
+                                  ),
+                                ),
+                                if (store.document.costPerWear(e) != null)
+                                  Text(
+                                    '${store.document.costPerWear(e)!.toStringAsFixed(0)} ₽ / носка',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF858980),
+                                    ),
+                                  ),
+                                if (e.text('photo').isEmpty)
+                                  TextButton(
+                                    onPressed: () => photo(e),
+                                    child: const Text('Фото'),
+                                  ),
+                              ],
                             ),
                           ),
-                          icon: Icon(
-                            e.flag('favorite')
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                          ),
                         ),
-                      ],
-                      if (kind == Kind.wishlist)
-                        TextButton(
-                          onPressed: () => perform(
-                            context,
-                            () => store.mutate((d) {
-                              d.put(
-                                Entry(
-                                  kind: Kind.wardrobe,
-                                  title: e.title,
-                                  data: {...e.data},
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ],
+        if (kind != Kind.wardrobe)
+          ...entries.map(
+            (e) => Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    if (kind == Kind.outfit)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: e.ids('items').map((id) {
+                          final item = store.document.find(id);
+                          return item?.text('photo').isNotEmpty == true
+                              ? ClothingPhoto(
+                                  item!.text('photo'),
+                                  width: 95,
+                                  height: 110,
+                                )
+                              : Container(
+                                  width: 95,
+                                  height: 110,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0EDE7),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.checkroom_outlined,
+                                    size: 36,
+                                  ),
+                                );
+                        }).toList(),
+                      ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading:
+                          kind == Kind.wardrobe && e.text('photo').isNotEmpty
+                          ? ClothingPhoto(e.text('photo'))
+                          : Icon(
+                              kind == Kind.outfit
+                                  ? Icons.auto_awesome_outlined
+                                  : Icons.checkroom_outlined,
+                            ),
+                      title: Text(
+                        '${e.flag('favorite') ? '♡ ' : ''}${e.title}',
+                      ),
+                      subtitle: Text(
+                        kind == Kind.outfit
+                            ? e
+                                  .ids('items')
+                                  .map(
+                                    (id) =>
+                                        store.document.find(id)?.title ?? '',
+                                  )
+                                  .join(' · ')
+                            : '${clothingCategories[e.text('category')] ?? 'Вещь'} · ${e.text('color')}\n${e.number('price').toStringAsFixed(0)} ₽${kind == Kind.wardrobe ? ' · надето ${store.document.wears(e.id)} раз\nЦена носки: ${store.document.costPerWear(e) == null ? 'ещё нет носок' : '${store.document.costPerWear(e)!.toStringAsFixed(0)} ₽'}' : ''}',
+                      ),
+                      onTap: () => kind == Kind.outfit
+                          ? editOutfit(context, e)
+                          : editClothing(context, kind, e),
+                      trailing: IconButton(
+                        tooltip: 'Удалить',
+                        onPressed: () async {
+                          if (await confirm(
+                                context,
+                                'Удалить?',
+                                '${e.title}. Связанные планы образов будут удалены, вещи останутся в гардеробе.',
+                              ) &&
+                              context.mounted) {
+                            await perform(context, () => store.remove(e.id));
+                          }
+                        },
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        if (kind == Kind.wardrobe)
+                          TextButton.icon(
+                            onPressed: () => photo(e),
+                            icon: const Icon(Icons.add_a_photo_outlined),
+                            label: const Text('Фото'),
+                          ),
+                        if (kind == Kind.outfit) ...[
+                          TextButton.icon(
+                            onPressed: () => planOutfit(context, e),
+                            icon: const Icon(Icons.calendar_today_outlined),
+                            label: const Text('На дату'),
+                          ),
+                          IconButton(
+                            tooltip: 'Избранное',
+                            onPressed: () => perform(
+                              context,
+                              () => store.put(
+                                e.copy(
+                                  data: {
+                                    ...e.data,
+                                    'favorite': !e.flag('favorite'),
+                                  },
                                 ),
-                              );
-                              d.remove(e.id);
-                            }),
+                              ),
+                            ),
+                            icon: Icon(
+                              e.flag('favorite')
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                            ),
                           ),
-                          child: const Text('Куплено → в гардероб'),
-                        ),
-                    ],
-                  ),
-                ],
+                        ],
+                        if (kind == Kind.wishlist)
+                          TextButton(
+                            onPressed: () => perform(
+                              context,
+                              () => store.mutate((d) {
+                                d.put(
+                                  Entry(
+                                    kind: Kind.wardrobe,
+                                    title: e.title,
+                                    data: {...e.data},
+                                  ),
+                                );
+                                d.remove(e.id);
+                              }),
+                            ),
+                            child: const Text('Куплено › в гардероб'),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         if (kind == Kind.outfit) ...[
           const Section('Запланированные образы'),
           ...store
@@ -422,7 +600,7 @@ class _StylePageState extends State<StylePage> {
                     title: Text(
                       store.document.find(p.text('outfitId'))?.title ?? p.title,
                     ),
-                    subtitle: Text(p.text('date')),
+                    subtitle: Text(displayDate(p.text('date'))),
                     leading: Checkbox(
                       value: p.flag('worn'),
                       onChanged: (v) => perform(
