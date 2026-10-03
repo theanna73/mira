@@ -142,4 +142,58 @@ void main() {
       throwsFormatException,
     );
   });
+  test(
+    'deleted ingredient detaches reference while retaining saved nutrition',
+    () {
+      final d = MiraDocument();
+      final food = Entry(
+        kind: Kind.food,
+        title: 'Chicken',
+        data: {'calories': 120, 'protein': 22.5, 'fat': 2.62, 'carbs': 0},
+      );
+      d.put(food);
+      final recipe = makeSuggestedRecipe(
+        'Dinner',
+        1,
+        [
+          {'foodId': food.id, 'title': food.title, 'grams': 200},
+        ],
+        'Cook',
+        d,
+      );
+      d.put(recipe);
+      d.put(
+        Entry(
+          kind: Kind.meal,
+          title: recipe.title,
+          data: {
+            'date': '2026-10-03',
+            'sourceId': recipe.id,
+            ...nutritionSnapshot(recipe, 1),
+          },
+        ),
+      );
+      d.remove(food.id);
+      final retained = d.find(recipe.id)!;
+      final row = (retained.data['ingredients'] as List).single;
+      expect(row['foodId'], '');
+      expect(row['title'], 'Chicken');
+      expect(row['calories'], 240);
+      expect(retained.number('calories'), 240);
+      expect(d.totals(DateTime(2026, 10, 3)).calories, 240);
+      final edited = makeSuggestedRecipe(
+        'Updated dinner',
+        1,
+        [
+          {'foodId': row['foodId'], 'title': row['title'], 'grams': 200},
+        ],
+        'Cook',
+        d,
+        id: recipe.id,
+      );
+      d.put(edited);
+      expect(edited.data['nutritionKnown'], isFalse);
+      expect(d.totals(DateTime(2026, 10, 3)).calories, 240);
+    },
+  );
 }

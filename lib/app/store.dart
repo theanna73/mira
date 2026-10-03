@@ -143,20 +143,33 @@ class MiraStore extends ChangeNotifier {
     final job = _queue.then((_) async {
       try {
         final remote = await cloud!.read();
+        var nextDocument = document;
+        var nextRevision = revision;
         if (dirty) {
-          if ((remote?.revision ?? 0) != revision) {
-            throw SyncConflict();
+          // A prior upload may have succeeded before its acknowledgement or
+          // local cache write failed. Identical content is safe to acknowledge.
+          if (remote != null &&
+              remote.revision >= revision &&
+              document.sameContent(remote.document)) {
+            nextRevision = remote.revision;
+          } else {
+            if ((remote?.revision ?? 0) != revision) {
+              throw SyncConflict();
+            }
+            nextRevision = await cloud!.save(document, revision);
           }
-          revision = await cloud!.save(document, revision);
-          dirty = false;
         } else if (remote != null) {
-          document = remote.document;
-          revision = remote.revision;
+          nextDocument = remote.document;
+          nextRevision = remote.revision;
         }
         await local.write(
           scope,
-          StoredDocument(document, revision: revision, dirty: dirty).toJson(),
+          StoredDocument(nextDocument, revision: nextRevision).toJson(),
         );
+        // Publish the new state only after it is durably cached.
+        document = nextDocument;
+        revision = nextRevision;
+        dirty = false;
         awaitingCloudProfile = false;
         error = null;
       } on SyncConflict {

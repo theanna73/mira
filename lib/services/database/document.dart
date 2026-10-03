@@ -45,6 +45,25 @@ class MiraDocument {
   MiraDocument clone() => MiraDocument.fromJson(
     jsonDecode(jsonEncode(toJson())) as Map<String, dynamic>,
   );
+  bool sameContent(MiraDocument other) => _sameValue(toJson(), other.toJson());
+
+  static bool _sameValue(Object? a, Object? b) {
+    if (a is Map && b is Map) {
+      return a.length == b.length &&
+          a.keys.every(
+            (key) => b.containsKey(key) && _sameValue(a[key], b[key]),
+          );
+    }
+    if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (var i = 0; i < a.length; i++) {
+        if (!_sameValue(a[i], b[i])) return false;
+      }
+      return true;
+    }
+    return a == b;
+  }
+
   void addMessage(ChatMessage message) {
     chat.add(message);
     if (chat.length > 60) chat.removeRange(0, chat.length - 60);
@@ -176,6 +195,30 @@ class MiraDocument {
             data: {
               ...outfit.data,
               'items': outfit.ids('items').where((v) => v != id).toList(),
+            },
+          ),
+        );
+      }
+    }
+    if (removed?.kind == Kind.food) {
+      for (final recipe in of(Kind.recipe)) {
+        final rows = recipe.data['ingredients'] as List? ?? [];
+        if (!rows.any((row) => row['foodId'] == id)) continue;
+        put(
+          recipe.copy(
+            data: {
+              ...recipe.data,
+              'ingredients': rows
+                  .map(
+                    (row) => <String, dynamic>{
+                      ...Map<String, dynamic>.from(row as Map),
+                      if (row['foodId'] == id) ...{
+                        'foodId': '',
+                        'title': row['title'] ?? removed!.title,
+                      },
+                    },
+                  )
+                  .toList(),
             },
           ),
         );
