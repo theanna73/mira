@@ -20,6 +20,19 @@ Finder field(String label) => find.byWidgetPredicate(
   (widget) => widget is TextField && widget.decoration?.labelText == label,
 );
 
+Future<void> reveal(WidgetTester tester, Finder target) async {
+  await tester.scrollUntilVisible(
+    target,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+}
+
 Future<void> editorApp(
   WidgetTester tester,
   MiraStore store,
@@ -205,7 +218,7 @@ void main() {
       field('Количество: граммы продукта / порции рецепта'),
       '250',
     );
-    await tester.ensureVisible(find.text('Сохранить'));
+    await reveal(tester, find.text('Сохранить'));
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     expect(store.of(Kind.meal).single.data['nutritionKnown'], true);
@@ -221,7 +234,7 @@ void main() {
     await store.open('qa');
     await editorApp(tester, store, (context) => editFood(context));
     await tester.enterText(field('Название'), 'Вода');
-    await tester.ensureVisible(find.text('Сохранить'));
+    await reveal(tester, find.text('Сохранить'));
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     final incomplete = store.of(Kind.food).single;
@@ -234,10 +247,10 @@ void main() {
       'Жиры, г',
       'Углеводы, г',
     ]) {
-      await tester.ensureVisible(field(label));
+      await reveal(tester, field(label));
       await tester.enterText(field(label), '0');
     }
-    await tester.ensureVisible(find.text('Сохранить'));
+    await reveal(tester, find.text('Сохранить'));
     await tester.tap(find.text('Сохранить'));
     await tester.pumpAndSettle();
     expect(store.of(Kind.food).single.data['nutritionKnown'], true);
