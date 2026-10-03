@@ -22,13 +22,30 @@ Future<void> editFood(BuildContext context, [Entry? entry]) => sheet(
     heading: 'Продукт · на 100 г',
     entry: entry,
     fields: const [
-      FieldSpec('calories', 'Ккал на 100 г', type: FieldType.number),
-      FieldSpec('protein', 'Белки, г', type: FieldType.number),
-      FieldSpec('fat', 'Жиры, г', type: FieldType.number),
-      FieldSpec('carbs', 'Углеводы, г', type: FieldType.number),
+      FieldSpec(
+        'calories',
+        'Ккал на 100 г',
+        type: FieldType.number,
+        blankAsMissing: true,
+      ),
+      FieldSpec(
+        'protein',
+        'Белки, г',
+        type: FieldType.number,
+        blankAsMissing: true,
+      ),
+      FieldSpec('fat', 'Жиры, г', type: FieldType.number, blankAsMissing: true),
+      FieldSpec(
+        'carbs',
+        'Углеводы, г',
+        type: FieldType.number,
+        blankAsMissing: true,
+      ),
       FieldSpec('notes', 'Источник данных / упаковка'),
     ],
-    save: StoreScope.of(context).put,
+    save: (e) => StoreScope.of(
+      context,
+    ).put(e.copy(data: {...e.data, 'nutritionKnown': completeNutrition(e)})),
   ),
 );
 Future<void> editMeal(
