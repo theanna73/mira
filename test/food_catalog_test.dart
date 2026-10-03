@@ -30,7 +30,8 @@ void main() {
       expect(catalog.search('КУРИНОЕ филе').length, 3);
       expect(catalog.search('грудка сырая').single.fdcId, '171077');
       expect(catalog.search('гречка вареная').single.fdcId, '170686');
-      expect(catalog.search('несуществующий продукт'), isEmpty);
+    expect(catalog.search('несуществующий продукт'), isEmpty);
+    expect(catalog.search('соль').single.fdcId, '173468');
       for (final f in catalog.foods) {
         expect(knownNutrition(f.toEntry()), isTrue);
         expect(
@@ -136,6 +137,7 @@ void main() {
         await tester.enterText(find.byType(TextField).last, 'грудка сырая');
         await tester.pumpAndSettle();
         await tester.tap(find.text('Куриная грудка без кожи · сырая'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Выбрать продукт'));
         await tester.pumpAndSettle();
       }
@@ -159,6 +161,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.of(Kind.food), isEmpty);
       expect(store.of(Kind.recipe), isEmpty);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
       final instructions = find.byWidgetPredicate(
         (w) => w is TextField && w.decoration?.labelText == 'Как приготовить',
       );

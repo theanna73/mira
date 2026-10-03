@@ -123,7 +123,8 @@ class FoodCatalog {
         _ => '',
       };
       final text = normalize('${food.title} ${food.description} $aliases');
-      return terms.every(text.contains);
+      final words = text.split(' ');
+      return terms.every((term) => words.any((word) => word.startsWith(term)));
     }).toList();
   }
 }
