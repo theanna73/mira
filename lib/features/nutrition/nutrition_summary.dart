@@ -53,14 +53,14 @@ class NutritionSummary extends StatelessWidget {
       children: [
         const SizedBox(height: 16),
         SizedBox(
-          width: 210,
-          height: 210,
+          width: 156,
+          height: 156,
           child: Stack(
             alignment: Alignment.center,
             children: [
               SizedBox(
-                width: 200,
-                height: 200,
+                width: 148,
+                height: 148,
                 child: CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 10,
@@ -84,7 +84,7 @@ class NutritionSummary extends StatelessWidget {
                     (hasGoal ? remaining.abs() : totals.calories)
                         .toStringAsFixed(0),
                     style: const TextStyle(
-                      fontSize: 40,
+                      fontSize: 34,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

@@ -237,7 +237,7 @@ class _NutritionPageState extends State<NutritionPage> {
     );
     return PageBody(
       title: 'Питание',
-      subtitle: 'Планируй так, как удобно тебе',
+      subtitle: '',
       children: [
         ChipStrip(
           spacing: 8,
@@ -335,6 +335,7 @@ class _NutritionPageState extends State<NutritionPage> {
               child: Column(
                 children: [
                   ListTile(
+                    contentPadding: const EdgeInsets.only(left: 16, right: 80),
                     leading: Icon(switch (slot.key) {
                       'breakfast' => Icons.wb_sunny_outlined,
                       'lunch' => Icons.restaurant_outlined,
