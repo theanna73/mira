@@ -107,6 +107,7 @@ void main() {
 
       final consume = find.byTooltip('Отметить как съеденное');
       await tester.ensureVisible(consume);
+      await tester.pumpAndSettle();
       await tester.tap(consume);
       await tester.pumpAndSettle();
       expect(store.of(Kind.mealPlan), isEmpty);
