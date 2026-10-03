@@ -30,8 +30,8 @@ void main() {
       expect(catalog.search('КУРИНОЕ филе').length, 3);
       expect(catalog.search('грудка сырая').single.fdcId, '171077');
       expect(catalog.search('гречка вареная').single.fdcId, '170686');
-    expect(catalog.search('несуществующий продукт'), isEmpty);
-    expect(catalog.search('соль').single.fdcId, '173468');
+      expect(catalog.search('несуществующий продукт'), isEmpty);
+      expect(catalog.search('соль').single.fdcId, '173468');
       for (final f in catalog.foods) {
         expect(knownNutrition(f.toEntry()), isTrue);
         expect(
