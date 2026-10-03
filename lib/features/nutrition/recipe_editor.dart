@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../shared/models/entry.dart';
 import '../../shared/widgets/common.dart';
 import 'nutrition_logic.dart';
+import '../../services/nutrition/food_catalog.dart';
+import 'food_catalog_picker.dart';
 
 class RecipeEditor extends StatefulWidget {
   final Entry? entry;
@@ -74,32 +76,38 @@ class _RecipeEditorState extends State<RecipeEditor> {
     setState(() => saving = true);
     final store = StoreScope.of(context);
     try {
-      await store.put(
-        makeSuggestedRecipe(
-          title.text.trim(),
-          double.parse(servings.text.replaceAll(',', '.')),
-          ingredients
-              .map(
-                (i) => {
-                  'foodId': i['foodId'] ?? '',
-                  'title':
-                      store.document.find(i['foodId'] ?? '')?.title ??
-                      i['title'] ??
-                      '',
-                  'grams': double.parse(
-                    (i['controller'] as TextEditingController).text.replaceAll(
-                      ',',
-                      '.',
-                    ),
-                  ),
-                },
-              )
-              .toList(),
-          instructions.text.trim(),
-          store.document,
-          id: widget.entry?.id,
-        ),
-      );
+      await store.mutate((document) {
+        final rows = ingredients.map((i) {
+          final catalogFood = i['catalogFood'];
+          final food = catalogFood is CatalogFood
+              ? catalogFood.forDocument(document)
+              : document.find(i['foodId'] ?? '');
+          if (catalogFood is CatalogFood) {
+            if (food == null) throw const FormatException('Продукт не найден');
+            if (document.find(food.id) == null) document.put(food);
+          }
+          return <String, dynamic>{
+            'foodId': food?.id ?? i['foodId'] ?? '',
+            'title': food?.title ?? i['title'] ?? '',
+            'grams': double.parse(
+              (i['controller'] as TextEditingController).text.replaceAll(
+                ',',
+                '.',
+              ),
+            ),
+          };
+        }).toList();
+        document.put(
+          makeSuggestedRecipe(
+            title.text.trim(),
+            double.parse(servings.text.replaceAll(',', '.')),
+            rows,
+            instructions.text.trim(),
+            document,
+            id: widget.entry?.id,
+          ),
+        );
+      });
       if (mounted) {
         Navigator.pop(context);
       }
@@ -146,38 +154,47 @@ class _RecipeEditorState extends State<RecipeEditor> {
             const Section('Ингредиенты'),
             if (foods.isEmpty)
               const Text(
-                'Сначала добавьте продукты и их БЖУ в разделе «Продукты».',
+                'Выбери ингредиенты из справочника или добавь свои продукты.',
               ),
             ...ingredients.map(
               (i) => Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Column(
                   children: [
-                    if ((i['title']?.toString().isNotEmpty ?? false))
+                    if (i['catalogFood'] == null &&
+                        (i['title']?.toString().isNotEmpty ?? false))
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Text(i['title'].toString()),
                       ),
-                    DropdownButtonFormField<String>(
-                      initialValue: foods.any((e) => e.id == i['foodId'])
-                          ? i['foodId']
-                          : null,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Продукт'),
-                      items: foods
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e.id,
-                              child: Text(e.title),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => i['foodId'] = v,
-                      validator: (v) =>
-                          v == null && (i['title']?.toString().isEmpty ?? true)
-                          ? 'Выберите продукт'
-                          : null,
-                    ),
+                    if (i['catalogFood'] is CatalogFood)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text((i['catalogFood'] as CatalogFood).title),
+                        subtitle: const Text('USDA · значения на 100 г'),
+                      )
+                    else
+                      DropdownButtonFormField<String>(
+                        initialValue: foods.any((e) => e.id == i['foodId'])
+                            ? i['foodId']
+                            : null,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Продукт'),
+                        items: foods
+                            .map(
+                              (e) => DropdownMenuItem(
+                                value: e.id,
+                                child: Text(e.title),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) => i['foodId'] = v,
+                        validator: (v) =>
+                            v == null &&
+                                (i['title']?.toString().isEmpty ?? true)
+                            ? 'Выберите продукт'
+                            : null,
+                      ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -217,6 +234,27 @@ class _RecipeEditorState extends State<RecipeEditor> {
                     ),
               icon: const Icon(Icons.add),
               label: const Text('Добавить ингредиент'),
+            ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.search),
+              label: const Text('Ингредиент из справочника'),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final food = await sheet<CatalogFood>(
+                        context,
+                        const FoodCatalogPicker(),
+                      );
+                      if (food == null || !context.mounted) return;
+                      if (ownerScope != StoreScope.of(context).scope) return;
+                      setState(
+                        () => ingredients.add({
+                          'catalogFood': food,
+                          'title': food.title,
+                          'controller': TextEditingController(text: '100'),
+                        }),
+                      );
+                    },
             ),
             const SizedBox(height: 16),
             TextFormField(

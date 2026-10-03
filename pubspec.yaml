@@ -27,6 +27,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/welcome-hero.png
+    - assets/data/usda_foods.json
   fonts:
     - family: CormorantGaramond
       fonts:

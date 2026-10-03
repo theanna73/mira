@@ -18,6 +18,10 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed lib test
       - run: flutter analyze
       - run: flutter test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mira-catalog-review
+          path: .review/catalog
       - run: flutter build web --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
         with:

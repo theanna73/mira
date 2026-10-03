@@ -1,0 +1,630 @@
+{
+  "schemaVersion": 1,
+  "source": "USDA FoodData Central",
+  "release": "SR Legacy 04/2018",
+  "downloadUrl": "https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip",
+  "archiveSha256": "b80817294b8850530aaedf2e515c02593b1824f763a0ff356e5c2081643e6fd0",
+  "basisGrams": 100,
+  "foods": [
+    {
+      "fdcId": "171077",
+      "title": "Куриная грудка без кожи · сырая",
+      "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 2.62,
+      "calories": 120.0,
+      "protein": 22.5,
+      "carbs": 0.0
+    },
+    {
+      "fdcId": "171477",
+      "title": "Куриная грудка без кожи · запечённая",
+      "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
+      "publicationDate": "2019-04-01",
+      "fat": 3.57,
+      "carbs": 0.0,
+      "calories": 165.0,
+      "protein": 31.02
+    },
+    {
+      "fdcId": "171478",
+      "title": "Куриная грудка без кожи · тушёная",
+      "description": "Chicken, broilers or fryers, breast, meat only, cooked, stewed",
+      "publicationDate": "2019-04-01",
+      "protein": 28.98,
+      "fat": 3.03,
+      "carbs": 0.0,
+      "calories": 151.0
+    },
+    {
+      "fdcId": "171287",
+      "title": "Яйцо куриное · сырое",
+      "description": "Egg, whole, raw, fresh",
+      "publicationDate": "2019-04-01",
+      "calories": 143.0,
+      "protein": 12.56,
+      "fat": 9.51,
+      "carbs": 0.72
+    },
+    {
+      "fdcId": "173424",
+      "title": "Яйцо куриное · варёное вкрутую",
+      "description": "Egg, whole, cooked, hard-boiled",
+      "publicationDate": "2019-04-01",
+      "calories": 155.0,
+      "protein": 12.58,
+      "fat": 10.61,
+      "carbs": 1.12
+    },
+    {
+      "fdcId": "172185",
+      "title": "Омлет",
+      "description": "Egg, whole, cooked, omelet",
+      "publicationDate": "2019-04-01",
+      "protein": 10.57,
+      "fat": 11.66,
+      "carbs": 0.64,
+      "calories": 154.0
+    },
+    {
+      "fdcId": "170108",
+      "title": "Перец болгарский красный · сырой",
+      "description": "Peppers, sweet, red, raw",
+      "publicationDate": "2019-04-01",
+      "calories": 26.0,
+      "carbs": 6.03,
+      "protein": 0.99,
+      "fat": 0.3
+    },
+    {
+      "fdcId": "169291",
+      "title": "Кабачок с кожурой · сырой",
+      "description": "Squash, summer, zucchini, includes skin, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.32,
+      "carbs": 3.11,
+      "calories": 17.0,
+      "protein": 1.21
+    },
+    {
+      "fdcId": "170000",
+      "title": "Лук репчатый · сырой",
+      "description": "Onions, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.1,
+      "carbs": 9.34,
+      "calories": 40.0,
+      "protein": 1.1
+    },
+    {
+      "fdcId": "171413",
+      "title": "Масло оливковое",
+      "description": "Oil, olive, salad or cooking",
+      "publicationDate": "2019-04-01",
+      "fat": 100.0,
+      "carbs": 0.0,
+      "calories": 884.0,
+      "protein": 0.0
+    },
+    {
+      "fdcId": "171025",
+      "title": "Масло подсолнечное · линолевое",
+      "description": "Oil, sunflower, linoleic, (approx. 65%)",
+      "publicationDate": "2019-04-01",
+      "protein": 0.0,
+      "fat": 100.0,
+      "carbs": 0.0,
+      "calories": 884.0
+    },
+    {
+      "fdcId": "168877",
+      "title": "Рис белый длиннозёрный · сухой, обогащённый",
+      "description": "Rice, white, long-grain, regular, raw, enriched",
+      "publicationDate": "2019-04-01",
+      "fat": 0.66,
+      "carbs": 79.95,
+      "calories": 365.0,
+      "protein": 7.13
+    },
+    {
+      "fdcId": "168878",
+      "title": "Рис белый длиннозёрный · варёный, обогащённый",
+      "description": "Rice, white, long-grain, regular, enriched, cooked",
+      "publicationDate": "2019-04-01",
+      "protein": 2.69,
+      "fat": 0.28,
+      "carbs": 28.17,
+      "calories": 130.0
+    },
+    {
+      "fdcId": "170685",
+      "title": "Гречневая крупа обжаренная · сухая",
+      "description": "Buckwheat groats, roasted, dry",
+      "publicationDate": "2019-04-01",
+      "protein": 11.73,
+      "fat": 2.71,
+      "carbs": 74.95,
+      "calories": 346.0
+    },
+    {
+      "fdcId": "170686",
+      "title": "Гречневая крупа обжаренная · варёная",
+      "description": "Buckwheat groats, roasted, cooked",
+      "publicationDate": "2019-04-01",
+      "fat": 0.62,
+      "carbs": 19.94,
+      "calories": 92.0,
+      "protein": 3.38
+    },
+    {
+      "fdcId": "169705",
+      "title": "Овёс · сухой",
+      "description": "Oats (Includes foods for USDA's Food Distribution Program)",
+      "publicationDate": "2019-04-01",
+      "protein": 16.89,
+      "fat": 6.9,
+      "carbs": 66.27,
+      "calories": 389.0
+    },
+    {
+      "fdcId": "168874",
+      "title": "Киноа · сухая",
+      "description": "Quinoa, uncooked",
+      "publicationDate": "2019-04-01",
+      "protein": 14.12,
+      "fat": 6.07,
+      "carbs": 64.16,
+      "calories": 368.0
+    },
+    {
+      "fdcId": "168917",
+      "title": "Киноа · варёная",
+      "description": "Quinoa, cooked",
+      "publicationDate": "2019-04-01",
+      "protein": 4.4,
+      "fat": 1.92,
+      "carbs": 21.3,
+      "calories": 120.0
+    },
+    {
+      "fdcId": "170457",
+      "title": "Помидор · сырой",
+      "description": "Tomatoes, red, ripe, raw, year round average",
+      "publicationDate": "2019-04-01",
+      "carbs": 3.89,
+      "calories": 18.0,
+      "fat": 0.2,
+      "protein": 0.88
+    },
+    {
+      "fdcId": "168409",
+      "title": "Огурец с кожурой · сырой",
+      "description": "Cucumber, with peel, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 3.63,
+      "calories": 15.0,
+      "fat": 0.11,
+      "protein": 0.65
+    },
+    {
+      "fdcId": "170393",
+      "title": "Морковь · сырая",
+      "description": "Carrots, raw",
+      "publicationDate": "2019-04-01",
+      "protein": 0.93,
+      "fat": 0.24,
+      "carbs": 9.58,
+      "calories": 41.0
+    },
+    {
+      "fdcId": "170379",
+      "title": "Брокколи · сырая",
+      "description": "Broccoli, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 6.64,
+      "calories": 34.0,
+      "fat": 0.37,
+      "protein": 2.82
+    },
+    {
+      "fdcId": "170026",
+      "title": "Картофель с кожурой · сырой",
+      "description": "Potatoes, flesh and skin, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.09,
+      "calories": 77.0,
+      "protein": 2.05,
+      "carbs": 17.49
+    },
+    {
+      "fdcId": "173944",
+      "title": "Банан · сырой",
+      "description": "Bananas, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 22.84,
+      "calories": 89.0,
+      "protein": 1.09,
+      "fat": 0.33
+    },
+    {
+      "fdcId": "171688",
+      "title": "Яблоко с кожурой · сырое",
+      "description": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+      "publicationDate": "2019-04-01",
+      "carbs": 13.81,
+      "calories": 52.0,
+      "fat": 0.17,
+      "protein": 0.26
+    },
+    {
+      "fdcId": "169097",
+      "title": "Апельсин · сырой",
+      "description": "Oranges, raw, all commercial varieties",
+      "publicationDate": "2019-04-01",
+      "fat": 0.12,
+      "carbs": 11.75,
+      "calories": 47.0,
+      "protein": 0.94
+    },
+    {
+      "fdcId": "167762",
+      "title": "Клубника · сырая",
+      "description": "Strawberries, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.3,
+      "protein": 0.67,
+      "carbs": 7.68,
+      "calories": 32.0
+    },
+    {
+      "fdcId": "171705",
+      "title": "Авокадо · сырое",
+      "description": "Avocados, raw, all commercial varieties",
+      "publicationDate": "2019-04-01",
+      "protein": 2.0,
+      "fat": 14.66,
+      "carbs": 8.53,
+      "calories": 160.0
+    },
+    {
+      "fdcId": "172217",
+      "title": "Молоко цельное · 3,25%",
+      "description": "Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D",
+      "publicationDate": "2019-04-01",
+      "carbs": 4.78,
+      "calories": 61.0,
+      "fat": 3.27,
+      "protein": 3.15
+    },
+    {
+      "fdcId": "170886",
+      "title": "Йогурт натуральный · нежирный",
+      "description": "Yogurt, plain, low fat",
+      "publicationDate": "2019-04-01",
+      "calories": 63.0,
+      "fat": 1.55,
+      "carbs": 7.04,
+      "protein": 5.25
+    },
+    {
+      "fdcId": "171284",
+      "title": "Йогурт натуральный · из цельного молока",
+      "description": "Yogurt, plain, whole milk",
+      "publicationDate": "2019-04-01",
+      "calories": 61.0,
+      "protein": 3.47,
+      "fat": 3.25,
+      "carbs": 4.66
+    },
+    {
+      "fdcId": "170894",
+      "title": "Йогурт греческий · обезжиренный",
+      "description": "Yogurt, Greek, plain, nonfat (Includes foods for USDA's Food Distribution Program)",
+      "publicationDate": "2019-04-01",
+      "protein": 10.19,
+      "fat": 0.39,
+      "carbs": 3.6,
+      "calories": 59.0
+    },
+    {
+      "fdcId": "171304",
+      "title": "Йогурт греческий · из цельного молока",
+      "description": "Yogurt, Greek, plain, whole milk",
+      "publicationDate": "2019-04-01",
+      "protein": 9.0,
+      "fat": 5.0,
+      "carbs": 3.98,
+      "calories": 97.0
+    },
+    {
+      "fdcId": "172182",
+      "title": "Зернёный творог (cottage cheese) · 2%",
+      "description": "Cheese, cottage, lowfat, 2% milkfat",
+      "publicationDate": "2019-04-01",
+      "fat": 2.27,
+      "carbs": 4.76,
+      "calories": 81.0,
+      "protein": 10.45
+    },
+    {
+      "fdcId": "173414",
+      "title": "Сыр чеддер",
+      "description": "Cheese, cheddar (Includes foods for USDA's Food Distribution Program)",
+      "publicationDate": "2019-04-01",
+      "carbs": 3.37,
+      "calories": 403.0,
+      "protein": 22.87,
+      "fat": 33.31
+    },
+    {
+      "fdcId": "170845",
+      "title": "Сыр моцарелла · из цельного молока",
+      "description": "Cheese, mozzarella, whole milk",
+      "publicationDate": "2019-04-01",
+      "protein": 22.17,
+      "fat": 22.14,
+      "carbs": 2.4,
+      "calories": 299.0
+    },
+    {
+      "fdcId": "173430",
+      "title": "Масло сливочное · несолёное",
+      "description": "Butter, without salt",
+      "publicationDate": "2019-04-01",
+      "calories": 717.0,
+      "fat": 81.11,
+      "carbs": 0.06,
+      "protein": 0.85
+    },
+    {
+      "fdcId": "168936",
+      "title": "Мука пшеничная · белая, обогащённая",
+      "description": "Wheat flour, white, all-purpose, enriched, unbleached",
+      "publicationDate": "2019-04-01",
+      "fat": 0.98,
+      "carbs": 76.31,
+      "calories": 364.0,
+      "protein": 10.33
+    },
+    {
+      "fdcId": "172420",
+      "title": "Чечевица · сухая",
+      "description": "Lentils, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 1.06,
+      "protein": 24.63,
+      "carbs": 63.35,
+      "calories": 352.0
+    },
+    {
+      "fdcId": "172421",
+      "title": "Чечевица · варёная, без соли",
+      "description": "Lentils, mature seeds, cooked, boiled, without salt",
+      "publicationDate": "2019-04-01",
+      "carbs": 20.13,
+      "calories": 116.0,
+      "protein": 9.02,
+      "fat": 0.38
+    },
+    {
+      "fdcId": "173744",
+      "title": "Фасоль красная · сухая",
+      "description": "Beans, kidney, red, mature seeds, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 61.29,
+      "calories": 337.0,
+      "protein": 22.53,
+      "fat": 1.06
+    },
+    {
+      "fdcId": "173743",
+      "title": "Фасоль красная · варёная, без соли",
+      "description": "Beans, kidney, california red, mature seeds, cooked, boiled, without salt",
+      "publicationDate": "2019-04-01",
+      "fat": 0.09,
+      "carbs": 22.41,
+      "calories": 124.0,
+      "protein": 9.13
+    },
+    {
+      "fdcId": "174030",
+      "title": "Говяжий фарш · 10% жира, сырой",
+      "description": "Beef, ground, 90% lean meat / 10% fat, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 10.0,
+      "carbs": 0.0,
+      "protein": 20.0,
+      "calories": 176.0
+    },
+    {
+      "fdcId": "171795",
+      "title": "Говяжий фарш · 10% жира, запечённый",
+      "description": "Beef, ground, 90% lean meat / 10% fat, loaf, cooked, baked",
+      "publicationDate": "2019-04-01",
+      "calories": 214.0,
+      "protein": 26.62,
+      "carbs": 0.0,
+      "fat": 11.1
+    },
+    {
+      "fdcId": "170567",
+      "title": "Миндаль",
+      "description": "Nuts, almonds",
+      "publicationDate": "2019-04-01",
+      "protein": 21.15,
+      "fat": 49.93,
+      "carbs": 21.55,
+      "calories": 579.0
+    },
+    {
+      "fdcId": "170187",
+      "title": "Грецкий орех",
+      "description": "Nuts, walnuts, english",
+      "publicationDate": "2019-04-01",
+      "carbs": 13.71,
+      "calories": 654.0,
+      "protein": 15.23,
+      "fat": 65.21
+    },
+    {
+      "fdcId": "169655",
+      "title": "Сахар белый",
+      "description": "Sugars, granulated",
+      "publicationDate": "2019-04-01",
+      "protein": 0.0,
+      "fat": 0.0,
+      "calories": 387.0,
+      "carbs": 99.98
+    },
+    {
+      "fdcId": "173468",
+      "title": "Соль поваренная",
+      "description": "Salt, table",
+      "publicationDate": "2019-04-01",
+      "protein": 0.0,
+      "fat": 0.0,
+      "carbs": 0.0,
+      "calories": 0.0
+    },
+    {
+      "fdcId": "169640",
+      "title": "Мёд",
+      "description": "Honey",
+      "publicationDate": "2019-04-01",
+      "protein": 0.3,
+      "fat": 0.0,
+      "carbs": 82.4,
+      "calories": 304.0
+    },
+    {
+      "fdcId": "168462",
+      "title": "Шпинат · сырой",
+      "description": "Spinach, raw",
+      "publicationDate": "2019-04-01",
+      "protein": 2.86,
+      "fat": 0.39,
+      "carbs": 3.63,
+      "calories": 23.0
+    },
+    {
+      "fdcId": "169251",
+      "title": "Шампиньоны · сырые",
+      "description": "Mushrooms, white, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.34,
+      "protein": 3.09,
+      "carbs": 3.26,
+      "calories": 22.0
+    },
+    {
+      "fdcId": "168927",
+      "title": "Макароны · сухие, необогащённые",
+      "description": "Pasta, dry, unenriched",
+      "publicationDate": "2019-04-01",
+      "protein": 13.04,
+      "fat": 1.51,
+      "carbs": 74.67,
+      "calories": 371.0
+    },
+    {
+      "fdcId": "168928",
+      "title": "Макароны · варёные, без соли",
+      "description": "Pasta, cooked, unenriched, without added salt",
+      "publicationDate": "2019-04-01",
+      "fat": 0.93,
+      "protein": 5.8,
+      "carbs": 30.86,
+      "calories": 158.0
+    },
+    {
+      "fdcId": "172688",
+      "title": "Хлеб цельнозерновой · промышленный",
+      "description": "Bread, whole-wheat, commercially prepared",
+      "publicationDate": "2019-04-01",
+      "fat": 3.5,
+      "carbs": 42.71,
+      "calories": 252.0,
+      "protein": 12.45
+    },
+    {
+      "fdcId": "174924",
+      "title": "Хлеб белый · промышленный",
+      "description": "Bread, white, commercially prepared (includes soft bread crumbs)",
+      "publicationDate": "2019-04-01",
+      "fat": 3.33,
+      "carbs": 49.42,
+      "calories": 266.0,
+      "protein": 8.85
+    },
+    {
+      "fdcId": "169975",
+      "title": "Капуста белокочанная · сырая",
+      "description": "Cabbage, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.1,
+      "carbs": 5.8,
+      "calories": 25.0,
+      "protein": 1.28
+    },
+    {
+      "fdcId": "169230",
+      "title": "Чеснок · сырой",
+      "description": "Garlic, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 33.06,
+      "calories": 149.0,
+      "protein": 6.36,
+      "fat": 0.5
+    },
+    {
+      "fdcId": "171711",
+      "title": "Голубика · сырая",
+      "description": "Blueberries, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 14.49,
+      "calories": 57.0,
+      "fat": 0.33,
+      "protein": 0.74
+    },
+    {
+      "fdcId": "167755",
+      "title": "Малина · сырая",
+      "description": "Raspberries, raw",
+      "publicationDate": "2019-04-01",
+      "carbs": 11.94,
+      "calories": 52.0,
+      "fat": 0.65,
+      "protein": 1.2
+    },
+    {
+      "fdcId": "169118",
+      "title": "Груша · сырая",
+      "description": "Pears, raw",
+      "publicationDate": "2019-04-01",
+      "fat": 0.14,
+      "carbs": 15.23,
+      "calories": 57.0,
+      "protein": 0.36
+    },
+    {
+      "fdcId": "175167",
+      "title": "Лосось атлантический · выращенный, сырой",
+      "description": "Fish, salmon, Atlantic, farmed, raw",
+      "publicationDate": "2019-04-01",
+      "calories": 208.0,
+      "fat": 13.42,
+      "protein": 20.42,
+      "carbs": 0.0
+    },
+    {
+      "fdcId": "175168",
+      "title": "Лосось атлантический · выращенный, приготовленный сухим нагревом",
+      "description": "Fish, salmon, Atlantic, farmed, cooked, dry heat",
+      "publicationDate": "2019-04-01",
+      "fat": 12.35,
+      "carbs": 0.0,
+      "protein": 22.1,
+      "calories": 206.0
+    }
+  ]
+}

@@ -8,6 +8,8 @@ import 'nutrition_logic.dart';
 import 'recipe_editor.dart';
 import 'nutrition_summary.dart';
 import '../supplies/expiry_logic.dart';
+import '../../services/nutrition/food_catalog.dart';
+import 'food_catalog_picker.dart';
 
 const mealSlots = {
   'breakfast': 'Завтрак',
@@ -43,9 +45,24 @@ Future<void> editFood(BuildContext context, [Entry? entry]) => sheet(
       ),
       FieldSpec('notes', 'Источник данных / упаковка'),
     ],
-    save: (e) => StoreScope.of(
-      context,
-    ).put(e.copy(data: {...e.data, 'nutritionKnown': completeNutrition(e)})),
+    save: (e) => StoreScope.of(context).put(
+      e.copy(
+        data: {
+          ...e.data,
+          'nutritionKnown': completeNutrition(e),
+          if (e.data['nutritionSource'] is Map &&
+              nutritionKeys.any((key) => entry?.data[key] != e.data[key]) &&
+              !e.text('notes').contains('БЖУ изменены вручную.'))
+            'notes': '${e.text('notes')}\nБЖУ изменены вручную.',
+          if (e.data['nutritionSource'] is Map)
+            'nutritionSource': {
+              ...Map<String, dynamic>.from(e.data['nutritionSource'] as Map),
+              if (nutritionKeys.any((key) => entry?.data[key] != e.data[key]))
+                'userEdited': true,
+            },
+        },
+      ),
+    ),
   ),
 );
 Future<void> editMeal(
@@ -385,6 +402,35 @@ class _NutritionPageState extends State<NutritionPage> {
               icon: const Icon(Icons.add),
             ),
           ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.search),
+            label: const Text('Найти в справочнике'),
+            onPressed: () async {
+              final scope = store.scope;
+              final food = await sheet<CatalogFood>(
+                context,
+                const FoodCatalogPicker(),
+              );
+              if (food == null || !context.mounted) return;
+              if (store.scope != scope || !store.ready) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Аккаунт изменился. Откройте справочник заново.',
+                    ),
+                  ),
+                );
+                return;
+              }
+              await perform(
+                context,
+                () => store.mutate((d) {
+                  final entry = food.forDocument(d);
+                  if (d.find(entry.id) == null) d.put(entry);
+                }),
+              );
+            },
+          ),
           if (store.of(Kind.food).isEmpty)
             const EmptyCard('Введите значения с упаковки на 100 г'),
           ...store
@@ -394,7 +440,9 @@ class _NutritionPageState extends State<NutritionPage> {
                   child: ListTile(
                     title: Text(e.title),
                     subtitle: Text(
-                      '${e.number('calories').toStringAsFixed(0)} ккал · Б ${e.number('protein')} · Ж ${e.number('fat')} · У ${e.number('carbs')} / 100 г',
+                      knownNutrition(e)
+                          ? '${e.number('calories').toStringAsFixed(0)} ккал · Б ${e.number('protein')} · Ж ${e.number('fat')} · У ${e.number('carbs')} / 100 г'
+                          : 'БЖУ неизвестны · добавьте данные с упаковки',
                     ),
                     onTap: () => editFood(context, e),
                     trailing: PopupMenuButton<String>(
