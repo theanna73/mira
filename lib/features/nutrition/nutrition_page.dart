@@ -10,6 +10,8 @@ import 'nutrition_summary.dart';
 import '../supplies/expiry_logic.dart';
 import '../../services/nutrition/food_catalog.dart';
 import 'food_catalog_picker.dart';
+import 'barcode_food_picker.dart';
+import '../../services/nutrition/barcode_food.dart';
 
 const mealSlots = {
   'breakfast': 'Завтрак',
@@ -418,6 +420,33 @@ class _NutritionPageState extends State<NutritionPage> {
                     content: Text(
                       'Аккаунт изменился. Откройте справочник заново.',
                     ),
+                  ),
+                );
+                return;
+              }
+              await perform(
+                context,
+                () => store.mutate((d) {
+                  final entry = food.forDocument(d);
+                  if (d.find(entry.id) == null) d.put(entry);
+                }),
+              );
+            },
+          ),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.qr_code),
+            label: const Text('Ввести штрихкод'),
+            onPressed: () async {
+              final scope = store.scope;
+              final food = await sheet<BarcodeFood>(
+                context,
+                const BarcodeFoodPicker(),
+              );
+              if (food == null || !context.mounted) return;
+              if (store.scope != scope || !store.ready) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Аккаунт изменился. Откройте поиск заново.'),
                   ),
                 );
                 return;

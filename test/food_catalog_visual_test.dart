@@ -15,6 +15,8 @@ import 'package:mira/services/nutrition/food_catalog.dart';
 import 'package:mira/shared/models/entry.dart';
 import 'package:mira/shared/widgets/common.dart';
 import 'store_test.dart' show MemoryLocal;
+import 'package:mira/features/nutrition/barcode_food_picker.dart';
+import 'package:mira/services/nutrition/barcode_food.dart';
 
 void main() {
   testWidgets('capture actual catalogue and entry point for visual approval', (
@@ -139,6 +141,37 @@ void main() {
       ),
     );
     await capture('03-recipe');
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundary,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: miraTheme(Brightness.light),
+          home: Scaffold(
+            body: SafeArea(
+              child: BarcodeFoodPicker(
+                lookup: (code) async => BarcodeFood.fromJson({
+                  'code': code,
+                  'title': 'Тестовый продукт',
+                  'brand': 'Пример карточки',
+                  'modified': '1',
+                  'basisGrams': 100,
+                  'calories': 100,
+                  'protein': 2,
+                  'fat': 0,
+                  'carbs': 23,
+                }),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await capture('04-barcode-empty');
+    await tester.enterText(find.byType(TextField), '3017624010701');
+    await tester.tap(find.text('Найти продукт'));
+    await capture('05-barcode-result');
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

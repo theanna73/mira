@@ -71,8 +71,8 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.5.4
-      - run: deno check supabase/functions/mira-ai/index.ts supabase/functions/delete-account/index.ts
-      - run: deno test supabase/functions/mira-ai/
+      - run: deno check supabase/functions/mira-ai/index.ts supabase/functions/delete-account/index.ts supabase/functions/food-lookup/index.ts
+      - run: deno test supabase/functions/mira-ai/ supabase/functions/food-lookup/
       - uses: supabase/setup-cli@v1
         with:
           version: latest
