@@ -87,6 +87,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(calls, 1);
       expect(selected, isNull);
+      await tester.ensureVisible(find.text('Добавить продукт'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Добавить продукт'));
       await tester.pumpAndSettle();
       expect(selected!.title, 'Тестовый продукт');
