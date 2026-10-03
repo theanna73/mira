@@ -1,16 +1,30 @@
 import '../../services/database/document.dart';
 import '../../shared/models/entry.dart';
 
+const nutritionKeys = ['calories', 'protein', 'fat', 'carbs'];
+
+bool completeNutrition(Entry source) => nutritionKeys.every((key) {
+  final value = source.data[key];
+  return value is num && value.isFinite && value >= 0;
+});
+
+bool knownNutrition(Entry source) =>
+    source.data['nutritionKnown'] != false && completeNutrition(source);
+
 Map<String, dynamic> nutritionSnapshot(Entry source, double quantity) {
   if (!quantity.isFinite || quantity <= 0) {
     throw const FormatException('Количество должно быть больше нуля');
   }
   final factor = source.kind == Kind.food ? quantity / 100 : quantity;
-  return {
-    if (source.data['nutritionKnown'] == false) 'nutritionKnown': false,
-    for (final key in ['calories', 'protein', 'fat', 'carbs'])
-      key: source.number(key) * factor,
+  final known = knownNutrition(source);
+  final values = {
+    for (final key in nutritionKeys)
+      key: known ? source.number(key) * factor : 0.0,
   };
+  if (values.values.any((value) => !value.isFinite)) {
+    throw const FormatException('Слишком большое количество или значение БЖУ');
+  }
+  return {'nutritionKnown': known, ...values};
 }
 
 Entry makeRecipe(
@@ -25,6 +39,7 @@ Entry makeRecipe(
     throw const FormatException('Укажите порции и хотя бы один ингредиент');
   }
   var totals = const NutritionTotals();
+  var known = true;
   final snapshots = <Map<String, dynamic>>[];
   for (final ingredient in ingredients) {
     final food = document.find(ingredient['foodId'] as String);
@@ -33,6 +48,7 @@ Entry makeRecipe(
     }
     final grams = (ingredient['grams'] as num).toDouble();
     final snapshot = nutritionSnapshot(food!, grams);
+    known = known && snapshot['nutritionKnown'] == true;
     totals =
         totals +
         NutritionTotals.fromEntry(
@@ -48,10 +64,13 @@ Entry makeRecipe(
       'servings': servings,
       'ingredients': snapshots,
       'instructions': instructions,
-      'calories': totals.calories / servings,
-      'protein': totals.protein / servings,
-      'fat': totals.fat / servings,
-      'carbs': totals.carbs / servings,
+      'nutritionKnown': known,
+      if (known) ...{
+        'calories': totals.calories / servings,
+        'protein': totals.protein / servings,
+        'fat': totals.fat / servings,
+        'carbs': totals.carbs / servings,
+      },
     },
   );
 }
@@ -95,14 +114,7 @@ Entry makeSuggestedRecipe(
     if (foodId.isNotEmpty && food?.kind != Kind.food) {
       throw const FormatException('Продукт из предложения больше не доступен');
     }
-    final nutritionKnown =
-        food != null &&
-        [
-          'calories',
-          'protein',
-          'fat',
-          'carbs',
-        ].every((k) => food.data[k] is num);
+    final nutritionKnown = food != null && knownNutrition(food);
     known = known && nutritionKnown;
     final snapshot = nutritionKnown
         ? nutritionSnapshot(food, grams)

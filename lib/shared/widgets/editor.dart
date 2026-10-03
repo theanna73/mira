@@ -9,12 +9,14 @@ class FieldSpec {
   final String key, label;
   final FieldType type;
   final bool required;
+  final bool blankAsMissing;
   final Map<String, String> choices;
   const FieldSpec(
     this.key,
     this.label, {
     this.type = FieldType.text,
     this.required = false,
+    this.blankAsMissing = false,
     this.choices = const {},
   });
 }
@@ -237,6 +239,10 @@ class _EntryEditorState extends State<EntryEditor> {
     for (final f in widget.fields) {
       if (controllers.containsKey(f.key)) {
         final raw = controllers[f.key]!.text.trim();
+        if (f.type == FieldType.number && f.blankAsMissing && raw.isEmpty) {
+          values.remove(f.key);
+          continue;
+        }
         values[f.key] = f.type == FieldType.number
             ? double.tryParse(raw.replaceAll(',', '.')) ?? 0
             : raw;
