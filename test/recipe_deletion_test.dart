@@ -10,6 +10,10 @@ void main() {
   testWidgets('legacy recipe with deleted ingredient can be edited and saved', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final local = MemoryLocal();
     final store = MiraStore(local);
     await store.open('recipe-recovery');
@@ -51,7 +55,11 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('Сохранить'),
       150,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find
+          .byWidgetPredicate(
+            (w) => w is Scrollable && w.axisDirection == AxisDirection.down,
+          )
+          .last,
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Сохранить'));
