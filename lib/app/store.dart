@@ -5,6 +5,8 @@ import '../services/database/document.dart';
 import '../services/database/local_repository.dart';
 import '../shared/models/entry.dart';
 
+enum MealConsumptionSource { nutrition, today, unknown }
+
 class MiraStore extends ChangeNotifier {
   final LocalRepository local;
   CloudRepository? cloud;
@@ -107,13 +109,25 @@ class MiraStore extends ChangeNotifier {
       );
     }
   });
-  Future<void> consumePlan(Entry plan) => mutate((d) {
+  Future<void> consumePlan(
+    Entry plan, {
+    MealConsumptionSource source = MealConsumptionSource.unknown,
+  }) => mutate((d) {
     final current = d.find(plan.id);
     if (current == null || current.kind != Kind.mealPlan) {
       return;
     }
     d.put(
-      Entry(kind: Kind.meal, title: current.title, data: {...current.data}),
+      Entry(
+        kind: Kind.meal,
+        title: current.title,
+        data: {
+          ...current.data,
+          'consumedFromPlanId': current.id,
+          'consumedAt': DateTime.now().toUtc().toIso8601String(),
+          'consumedVia': source.name,
+        },
+      ),
     );
     d.remove(plan.id);
   });

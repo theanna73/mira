@@ -91,6 +91,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(store.of(Kind.recipe), hasLength(1));
       expect(store.of(Kind.mealPlan), hasLength(1));
+      final planId = store.of(Kind.mealPlan).single.id;
       expect(store.of(Kind.meal), isEmpty);
       expect(store.document.chat.last.applied, [0]);
       await tester.tap(find.byTooltip('Закрыть чат'));
@@ -111,6 +112,8 @@ void main() {
       expect(store.of(Kind.mealPlan), isEmpty);
       expect(store.of(Kind.meal), hasLength(1));
       expect(store.of(Kind.meal).single.text('mealTime'), '19:00');
+      expect(store.of(Kind.meal).single.text('consumedVia'), 'nutrition');
+      expect(store.of(Kind.meal).single.text('consumedFromPlanId'), planId);
       expect(tester.takeException(), isNull);
     },
   );

@@ -23,6 +23,15 @@ jobs:
         with:
           name: mira-web
           path: build/web
+      - name: Build private phone web client
+        run: >-
+          flutter build web --release --no-tree-shake-icons
+          --dart-define=SUPABASE_URL=https://pwbdfvwqtwnicneqnokh.supabase.co
+          --dart-define=SUPABASE_ANON_KEY=sb_publishable_0pcS5N2l0dJ2HG7lMql6Rw_j_M-tO5n
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mira-phone-web
+          path: build/web
   android:
     runs-on: ubuntu-latest
     steps:
