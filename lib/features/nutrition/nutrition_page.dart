@@ -299,7 +299,59 @@ class _NutritionPageState extends State<NutritionPage> {
             NutritionSummary(
               totals: totals,
               macroGoals: store.profile,
-              goal: (store.profile['calorieGoal'] …615 tokens truncated…    final scope = store.scope;
+              goal: (store.profile['calorieGoal'] as num? ?? 0).toDouble(),
+            ),
+          if (mode == 'balance')
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Приёмы пищи за день'),
+                    Wrap(
+                      spacing: 8,
+                      children: mealSlots.entries
+                          .map(
+                            (s) => Chip(
+                              avatar: Icon(
+                                meals.any((e) => e.text('slot') == s.key)
+                                    ? Icons.check_circle
+                                    : Icons.circle_outlined,
+                                size: 18,
+                              ),
+                              label: Text(s.value),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const Section('Дневник питания'),
+          for (final slot in mealSlots.entries)
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(switch (slot.key) {
+                      'breakfast' => Icons.wb_sunny_outlined,
+                      'lunch' => Icons.restaurant_outlined,
+                      'dinner' => Icons.nights_stay_outlined,
+                      _ => Icons.apple_outlined,
+                    }),
+                    title: Text(slot.value),
+                    subtitle: Text(
+                      meals.any((e) => e.text('slot') == slot.key)
+                          ? '${meals.where((e) => e.text('slot') == slot.key && knownNutrition(e)).fold(0.0, (sum, e) => sum + e.number('calories')).toStringAsFixed(0)} ккал · съедено${meals.any((e) => e.text('slot') == slot.key && !knownNutrition(e)) ? ' · есть неизвестные БЖУ' : ''}'
+                          : 'Добавить еду',
+                    ),
+                    trailing: IconButton(
+                      tooltip: 'Добавить: ${slot.value}',
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () async {
+                        final scope = store.scope;
                         final mealDate = date;
                         final choice = await sheet<MealFoodChoice>(
                           context,
