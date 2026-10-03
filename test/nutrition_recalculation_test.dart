@@ -17,7 +17,7 @@ Entry packagedFood() => Entry(
 );
 
 Finder field(String label) => find.byWidgetPredicate(
-  (widget) => widget is TextFormField && widget.decoration?.labelText == label,
+  (widget) => widget is TextField && widget.decoration?.labelText == label,
 );
 
 Future<void> editorApp(
