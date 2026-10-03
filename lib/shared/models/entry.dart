@@ -15,6 +15,10 @@ enum Kind {
   mealPlan,
   pantry,
   water,
+  supply,
+  shoppingList,
+  listItem,
+  routine,
 }
 
 /// A versioned, extensible record. Relationships always store IDs, never copies.
@@ -82,4 +86,14 @@ class NutritionTotals {
         fat: e.number('fat') * factor,
         carbs: e.number('carbs') * factor,
       );
+}
+
+// Display formatting only; storage and API dates remain ISO.
+String displayDate(String value, {bool includeTime = false}) {
+  final date = DateTime.tryParse(value);
+  if (date == null) return value;
+  String two(int value) => value.toString().padLeft(2, '0');
+  final label =
+      '${two(date.day)}/${two(date.month)}/${date.year.toString().padLeft(4, '0')}';
+  return includeTime ? '$label, ${two(date.hour)}:${two(date.minute)}' : label;
 }

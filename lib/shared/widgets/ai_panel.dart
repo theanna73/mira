@@ -262,7 +262,9 @@ class _AiPanelState extends State<AiPanel> {
                 Expanded(
                   child: Text(
                     'MIRA AI',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineMedium?.copyWith(fontSize: 28),
                   ),
                 ),
                 IconButton(
@@ -314,7 +316,7 @@ class _AiPanelState extends State<AiPanel> {
                     children: [
                       if (messages.isEmpty) ...[
                         Text(
-                          'Чем помочь сегодня?',
+                          'Привет${store.profile['name']?.toString().isNotEmpty == true ? ', ${store.profile['name']}' : ''}!\nЧем помочь сегодня?',
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 12),
@@ -351,8 +353,8 @@ class _AiPanelState extends State<AiPanel> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: message.role == 'user'
-                                  ? colors.primaryContainer
-                                  : colors.surfaceContainerLow,
+                                  ? const Color(0xFFDEEEEA)
+                                  : const Color(0xFFFFFDF9),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Column(

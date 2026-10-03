@@ -30,3 +30,12 @@ Deno.test("dates and existing-source references are validated", () => {
   assert(!groundedAction({type: "plan_meal", referenceId: "shirt"}, [{id: "shirt", kind: "wardrobe"}], ["nutrition"]));
   assert(groundedAction({type: "plan_meal", referenceId: "food"}, [{id: "food", kind: "food"}], ["nutrition"]));
 });
+
+Deno.test('new recipe validates quantities and grounds existing food references', () => {
+  const recipe = { type: 'create_recipe', title: 'Салат', date: '2026-10-03', referenceId: '', quantity: 1, slot: 'dinner', itemIds: [], start: '', end: '', mealTime: '19:00', instructions: 'Нарезать', servings: 1, ingredients: [{ foodId: '', title: 'Огурец', grams: 100 }] };
+  assert(validSuggestion({ message: 'Предлагаю сохранить', actions: [recipe] }));
+  assert(groundedAction(recipe, [], ['nutrition']));
+  assert(!validSuggestion({ message: 'Предлагаю', actions: [{ ...recipe, mealTime: '25:00' }] }));
+  assert(!groundedAction({ ...recipe, ingredients: [{ foodId: 'missing', title: 'Огурец', grams: 100 }] }, [], ['nutrition']));
+  assert(!validSuggestion({ message: 'Предлагаю', actions: [{ ...recipe, ingredients: [{ foodId: '', title: 'Огурец', grams: -10 }] }] }));
+});

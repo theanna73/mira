@@ -157,8 +157,8 @@ class _EntryEditorState extends State<EntryEditor> {
                       ? 'Не выбрана'
                       : DateFormat(
                           f.type == FieldType.date
-                              ? 'd MMMM y'
-                              : 'd MMMM y, HH:mm',
+                              ? 'dd/MM/yyyy'
+                              : 'dd/MM/yyyy, HH:mm',
                           'ru',
                         ).format(DateTime.parse(values[f.key])),
                 ),

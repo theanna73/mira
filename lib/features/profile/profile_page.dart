@@ -8,6 +8,10 @@ import '../../services/weather/weather_service.dart';
 import '../../shared/models/entry.dart';
 import '../../shared/widgets/common.dart';
 import 'auth_panel.dart';
+import '../supplies/supplies_page.dart';
+import '../lists/lists_page.dart';
+import '../lists/routines_page.dart';
+import '../today/today_settings.dart';
 
 class ProfilePage extends StatefulWidget {
   final Reminders reminders;
@@ -171,6 +175,38 @@ class _ProfilePageState extends State<ProfilePage> {
       title: 'Я',
       subtitle: 'Настрой MIRA под себя',
       children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ActionChip(
+              label: const Text('Запасы и сроки'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const SuppliesPage()),
+              ),
+            ),
+            ActionChip(
+              label: const Text('Мои списки'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const ListsPage()),
+              ),
+            ),
+            ActionChip(
+              label: const Text('Последний раз'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const RoutinesPage()),
+              ),
+            ),
+            ActionChip(
+              label: const Text('Настроить Сегодня'),
+              onPressed: () => sheet(context, const TodaySettings()),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         Card(
           child: ListTile(
             leading: const Icon(Icons.person_outline),
@@ -253,6 +289,19 @@ class _ProfilePageState extends State<ProfilePage> {
                   editText('calorieGoal', 'Цель по калориям', numeric: true),
             ),
           ),
+        if (profile['nutritionMode'] == 'calories')
+          for (final goal in {
+            'proteinGoal': 'Цель по белкам, г',
+            'fatGoal': 'Цель по жирам, г',
+            'carbsGoal': 'Цель по углеводам, г',
+          }.entries)
+            Card(
+              child: ListTile(
+                title: Text(goal.value),
+                subtitle: Text('${profile[goal.key] ?? 'Не задана'}'),
+                onTap: () => editText(goal.key, goal.value, numeric: true),
+              ),
+            ),
         Card(
           child: ListTile(
             title: const Text('Предпочтения и ограничения'),
@@ -431,7 +480,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
         const SizedBox(height: 16),
         const Text(
-          'MIRA 0.2.0 · Open-Meteo: погода и геокодирование',
+          'MIRA 0.3.0 · Open-Meteo: погода и геокодирование',
           textAlign: TextAlign.center,
         ),
       ],

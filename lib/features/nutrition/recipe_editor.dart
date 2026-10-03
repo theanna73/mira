@@ -34,7 +34,8 @@ class _RecipeEditorState extends State<RecipeEditor> {
     );
     for (final i in widget.entry?.data['ingredients'] as List? ?? []) {
       ingredients.add({
-        'foodId': i['foodId'],
+        'foodId': i['foodId'] ?? '',
+        'title': i['title'] ?? '',
         'controller': TextEditingController(text: i['grams'].toString()),
       });
     }
@@ -74,13 +75,17 @@ class _RecipeEditorState extends State<RecipeEditor> {
     final store = StoreScope.of(context);
     try {
       await store.put(
-        makeRecipe(
+        makeSuggestedRecipe(
           title.text.trim(),
           double.parse(servings.text.replaceAll(',', '.')),
           ingredients
               .map(
                 (i) => {
-                  'foodId': i['foodId'],
+                  'foodId': i['foodId'] ?? '',
+                  'title':
+                      store.document.find(i['foodId'] ?? '')?.title ??
+                      i['title'] ??
+                      '',
                   'grams': double.parse(
                     (i['controller'] as TextEditingController).text.replaceAll(
                       ',',
@@ -148,6 +153,11 @@ class _RecipeEditorState extends State<RecipeEditor> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Column(
                   children: [
+                    if ((i['title']?.toString().isNotEmpty ?? false))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(i['title'].toString()),
+                      ),
                     DropdownButtonFormField<String>(
                       initialValue: foods.any((e) => e.id == i['foodId'])
                           ? i['foodId']
@@ -163,7 +173,10 @@ class _RecipeEditorState extends State<RecipeEditor> {
                           )
                           .toList(),
                       onChanged: (v) => i['foodId'] = v,
-                      validator: (v) => v == null ? 'Выберите продукт' : null,
+                      validator: (v) =>
+                          v == null && (i['title']?.toString().isEmpty ?? true)
+                          ? 'Выберите продукт'
+                          : null,
                     ),
                     const SizedBox(height: 8),
                     Row(

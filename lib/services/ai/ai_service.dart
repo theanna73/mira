@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'chat_message.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../database/document.dart';
@@ -7,7 +8,9 @@ import '../../shared/models/entry.dart';
 
 class AiAction {
   final String type, title, date, referenceId, slot, start, end;
-  final double quantity;
+  final double quantity, servings;
+  final String instructions, mealTime;
+  final List<Map<String, dynamic>> ingredients;
   final List<String> itemIds;
   AiAction({
     required this.type,
@@ -19,9 +22,19 @@ class AiAction {
     this.end = '',
     this.quantity = 1,
     this.itemIds = const [],
+    this.servings = 1,
+    this.instructions = '',
+    this.mealTime = '',
+    this.ingredients = const [],
   });
   factory AiAction.fromJson(Map<String, dynamic> json) => AiAction(
     type: json['type'] as String,
+    servings: (json['servings'] as num?)?.toDouble() ?? 1,
+    instructions: json['instructions'] as String? ?? '',
+    mealTime: json['mealTime'] as String? ?? '',
+    ingredients: (json['ingredients'] as List? ?? [])
+        .map((i) => Map<String, dynamic>.from(i as Map))
+        .toList(),
     itemIds: (json['itemIds'] as List? ?? []).cast<String>(),
     title: json['title'] as String,
     date: json['date'] as String,
@@ -33,7 +46,7 @@ class AiAction {
   );
   Entry toEntry(MiraDocument document) {
     final parsed = DateTime.tryParse(date);
-    if (!(type == 'create_outfit' && date.isEmpty) &&
+    if (!({'create_outfit', 'create_recipe'}.contains(type) && date.isEmpty) &&
         (parsed == null ||
             dayKey(parsed) != date ||
             parsed.year < 2000 ||
@@ -42,6 +55,10 @@ class AiAction {
     }
     if (title.trim().isEmpty || title.length > 300) {
       throw const FormatException('Некорректное название');
+    }
+    if (mealTime.isNotEmpty &&
+        !RegExp(r'^(?:[01]\d|2[0-3]):[0-5]\d$').hasMatch(mealTime)) {
+      throw const FormatException('Некорректное время приёма пищи');
     }
     switch (type) {
       case 'create_task':
@@ -106,6 +123,20 @@ class AiAction {
           title: title,
           data: {'items': itemIds, 'occasion': 'casual', 'favorite': false},
         );
+      case 'create_recipe':
+        if (!quantity.isFinite ||
+            quantity <= 0 ||
+            quantity > 100000 ||
+            !{'breakfast', 'lunch', 'dinner', 'snack'}.contains(slot)) {
+          throw const FormatException('Некорректные порции или приём пищи');
+        }
+        return makeSuggestedRecipe(
+          title,
+          servings,
+          ingredients,
+          instructions,
+          document,
+        );
       case 'plan_meal':
         final source = document.find(referenceId);
         if (source == null || !{Kind.food, Kind.recipe}.contains(source.kind)) {
@@ -124,6 +155,8 @@ class AiAction {
             'sourceId': source.id,
             'quantity': quantity,
             'unit': source.kind == Kind.food ? 'г' : 'порц.',
+            'mealTime': mealTime,
+            'nutritionKnown': source.data['nutritionKnown'] != false,
             ...nutritionSnapshot(source, quantity),
           },
         );
@@ -141,6 +174,10 @@ class AiAction {
     'quantity': quantity,
     'itemIds': itemIds,
     'start': start,
+    'ingredients': ingredients,
+    'servings': servings,
+    'instructions': instructions,
+    'mealTime': mealTime,
     'end': end,
   };
   String get module => {'create_task', 'reschedule_event'}.contains(type)
@@ -163,6 +200,24 @@ class AiAction {
     }
     final entry = toEntry(document);
     document.put(entry);
+    if (type == 'create_recipe' && date.isNotEmpty) {
+      document.put(
+        Entry(
+          kind: Kind.mealPlan,
+          title: title,
+          data: {
+            'sourceId': entry.id,
+            'date': date,
+            'slot': slot,
+            'quantity': quantity,
+            'unit': 'порц.',
+            'mealTime': mealTime,
+            'nutritionKnown': entry.data['nutritionKnown'] != false,
+            ...nutritionSnapshot(entry, quantity),
+          },
+        ),
+      );
+    }
     if (type == 'create_outfit' && date.isNotEmpty) {
       document.put(
         Entry(
@@ -175,9 +230,13 @@ class AiAction {
   }
 
   String details(MiraDocument document) {
+    if (type == 'create_recipe') {
+      final recipe = toEntry(document);
+      return '$preview\n${ingredients.map((i) => '${i['title']} · ${i['grams']} г').join('\n')}\n$instructions\n${recipe.data['nutritionKnown'] == true ? 'БЖУ рассчитаны по сохранённым продуктам' : 'БЖУ пока неизвестны: добавьте данные ингредиентов'}';
+    }
     if (type == 'reschedule_event') {
       final event = document.find(referenceId);
-      return 'Перенести ${event?.title ?? title}\nБыло: ${event?.text('start') ?? 'Недоступно'} — ${event?.text('end') ?? ''}\nБудет: $start — $end';
+      return 'Перенести ${event?.title ?? title}\nБыло: ${displayDate(event?.text('start') ?? 'Недоступно', includeTime: true)} — ${displayDate(event?.text('end') ?? '', includeTime: true)}\nБудет: ${displayDate(start, includeTime: true)} — ${displayDate(end, includeTime: true)}';
     }
     if (type == 'create_outfit') {
       return '$preview\nВещи: ${itemIds.map((id) => document.find(id)?.title ?? 'Вещь недоступна').join(', ')}';
@@ -196,18 +255,21 @@ class AiAction {
             'snack': 'Перекус',
           }[slot] ??
           slot;
-      return '$slotName · $date\n${source?.title ?? 'Источник недоступен'} · $quantity ${source?.kind == Kind.food ? 'г' : 'порц.'}';
+      return '$slotName · ${displayDate(date)}${mealTime.isEmpty ? '' : ' · $mealTime'}\n${source?.title ?? 'Источник недоступен'} · $quantity ${source?.kind == Kind.food ? 'г' : 'порц.'}';
     }
     return preview;
   }
 
   String get preview => switch (type) {
-    'reschedule_event' => 'Перенести событие «$title» · $date',
-    'create_task' => 'Добавить задачу «$title» · $date',
-    'plan_outfit' => 'Запланировать образ «$title» · $date',
+    'reschedule_event' => 'Перенести событие «$title» · ${displayDate(date)}',
+    'create_task' => 'Добавить задачу «$title» · ${displayDate(date)}',
+    'plan_outfit' => 'Запланировать образ «$title» · ${displayDate(date)}',
     'create_outfit' =>
-      'Сохранить образ «$title»${date.isEmpty ? '' : ' и запланировать на $date'}',
-    'plan_meal' => 'Запланировать «$title» · $date · количество $quantity',
+      'Сохранить образ «$title»${date.isEmpty ? '' : ' и запланировать на ${displayDate(date)}'}',
+    'create_recipe' =>
+      'Сохранить рецепт «$title»${date.isEmpty ? '' : ' и запланировать на ${displayDate(date)}${mealTime.isEmpty ? '' : ' в $mealTime'}'}',
+    'plan_meal' =>
+      'Запланировать «$title» · ${displayDate(date)} · количество $quantity',
     _ => 'Неизвестное действие',
   };
 }
@@ -232,6 +294,14 @@ class AiService {
     if (client.auth.currentUser == null) {
       throw StateError('Для MIRA AI войдите в аккаунт');
     }
+    final historyPayload = history
+        .skip(history.length > 16 ? history.length - 16 : 0)
+        .map((m) => m.toHistory())
+        .toList();
+    while (historyPayload.isNotEmpty &&
+        utf8.encode(jsonEncode(historyPayload)).length > 256000) {
+      historyPayload.removeAt(0);
+    }
     final response = await client.functions
         .invoke(
           'mira-ai',
@@ -244,7 +314,7 @@ class AiService {
               'profile': document.profile,
               'entries': document.entries.map((e) => e.toJson()).toList(),
             },
-            'history': history.map((m) => m.toHistory()).toList(),
+            'history': historyPayload,
             'weather': weather,
           },
         )

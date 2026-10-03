@@ -167,7 +167,7 @@ class _PlannerPageState extends State<PlannerPage> {
                 },
                 child: Text(
                   DateFormat(
-                    mode == 'month' ? 'LLLL y' : 'd MMMM y',
+                    mode == 'month' ? 'LLLL y' : 'dd/MM/yyyy',
                     'ru',
                   ).format(date),
                 ),
@@ -203,7 +203,7 @@ class _PlannerPageState extends State<PlannerPage> {
             child: ListTile(
               title: Text(e.title),
               subtitle: Text(
-                '${DateFormat('d MMM, HH:mm', 'ru').format(e.time('start')!)} · ${categories[e.text('category')] ?? 'Личное'}${e.text('location').isEmpty ? '' : '\n${e.text('location')}'}',
+                '${DateFormat('dd/MM/yyyy, HH:mm', 'ru').format(e.time('start')!)} · ${categories[e.text('category')] ?? 'Личное'}${e.text('location').isEmpty ? '' : '\n${e.text('location')}'}',
               ),
               onTap: () => editPlanner(context, Kind.event, date, e),
               trailing: PopupMenuButton<String>(
@@ -265,7 +265,7 @@ class _PlannerPageState extends State<PlannerPage> {
                 ),
               ),
               subtitle: Text(
-                '${e.text('date')} · ${e.text('priority') == 'high' ? 'Высокий приоритет' : 'Обычный приоритет'}',
+                '${displayDate(e.text('date'))} · ${e.text('priority') == 'high' ? 'Высокий приоритет' : 'Обычный приоритет'}',
               ),
               secondary: PopupMenuButton<String>(
                 onSelected: (v) async {
@@ -308,7 +308,7 @@ class _PlannerPageState extends State<PlannerPage> {
                 child: CheckboxListTile(
                   title: Text(h.title),
                   subtitle: Text(
-                    'Отметка за ${DateFormat('d MMM', 'ru').format(date)}',
+                    'Отметка за ${DateFormat('dd/MM', 'ru').format(date)}',
                   ),
                   value: store
                       .of(Kind.habitLog)
