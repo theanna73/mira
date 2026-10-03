@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mira/app/store.dart';
 import 'package:mira/app/theme.dart';
 import 'package:mira/features/nutrition/nutrition_page.dart';
@@ -17,6 +18,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+      await initializeDateFormatting('ru');
       final local = MemoryLocal();
       final cloud = MemoryCloud();
       final store = MiraStore(local);
