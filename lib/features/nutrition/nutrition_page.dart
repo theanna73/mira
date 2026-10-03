@@ -34,12 +34,7 @@ Future<void> editFood(BuildContext context, [Entry? entry]) => sheet(
         type: FieldType.number,
         blankAsMissing: true,
       ),
-      FieldSpec(
-        'fat',
-        'Жиры, г',
-        type: FieldType.number,
-        blankAsMissing: true,
-      ),
+      FieldSpec('fat', 'Жиры, г', type: FieldType.number, blankAsMissing: true),
       FieldSpec(
         'carbs',
         'Углеводы, г',
@@ -48,9 +43,9 @@ Future<void> editFood(BuildContext context, [Entry? entry]) => sheet(
       ),
       FieldSpec('notes', 'Источник данных / упаковка'),
     ],
-    save: (e) => StoreScope.of(context).put(
-      e.copy(data: {...e.data, 'nutritionKnown': completeNutrition(e)}),
-    ),
+    save: (e) => StoreScope.of(
+      context,
+    ).put(e.copy(data: {...e.data, 'nutritionKnown': completeNutrition(e)})),
   ),
 );
 Future<void> editMeal(

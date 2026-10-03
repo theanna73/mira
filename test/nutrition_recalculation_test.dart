@@ -50,9 +50,15 @@ void main() {
   test('food grams and recipe portions scale every macro', () {
     final food = packagedFood();
     final doc = MiraDocument()..put(food);
-    final recipe = makeRecipe('Блюдо', 2, [
-      {'foodId': food.id, 'grams': 300},
-    ], '', doc);
+    final recipe = makeRecipe(
+      'Блюдо',
+      2,
+      [
+        {'foodId': food.id, 'grams': 300},
+      ],
+      '',
+      doc,
+    );
     expect(nutritionSnapshot(food, 250), {
       'nutritionKnown': true,
       'calories': 500.0,
@@ -100,9 +106,7 @@ void main() {
     for (final quantity in [0.0, -1.0, double.nan, double.infinity]) {
       expect(() => nutritionSnapshot(food, quantity), throwsFormatException);
     }
-    final huge = food.copy(
-      data: {...food.data, 'calories': double.maxFinite},
-    );
+    final huge = food.copy(data: {...food.data, 'calories': double.maxFinite});
     expect(() => nutritionSnapshot(huge, 300), throwsFormatException);
     final invalid = food.copy(data: {...food.data, 'fat': double.nan});
     expect(knownNutrition(invalid), false);
@@ -115,9 +119,15 @@ void main() {
     await store.open('nutrition-qa', repository: cloud);
     final food = packagedFood();
     await store.put(food);
-    final recipe = makeRecipe('Блюдо', 2, [
-      {'foodId': food.id, 'grams': 300},
-    ], '', store.document);
+    final recipe = makeRecipe(
+      'Блюдо',
+      2,
+      [
+        {'foodId': food.id, 'grams': 300},
+      ],
+      '',
+      store.document,
+    );
     await store.put(recipe);
     final date = DateTime(2026, 10, 3);
     final meal = Entry(
@@ -132,9 +142,16 @@ void main() {
     );
     await store.put(meal);
     await store.put(food.copy(data: {...food.data, 'calories': 300}));
-    final updated = makeRecipe('Блюдо', 4, [
-      {'foodId': food.id, 'grams': 450},
-    ], '', store.document, id: recipe.id);
+    final updated = makeRecipe(
+      'Блюдо',
+      4,
+      [
+        {'foodId': food.id, 'grams': 450},
+      ],
+      '',
+      store.document,
+      id: recipe.id,
+    );
     await store.put(updated);
     expect(updated.number('calories'), 337.5);
     expect(updated.number('protein'), 11.25);
@@ -211,7 +228,12 @@ void main() {
     expect(incomplete.data.containsKey('calories'), false);
     expect(incomplete.data['nutritionKnown'], false);
     await editorApp(tester, store, (context) => editFood(context, incomplete));
-    for (final label in ['Ккал на 100 г', 'Белки, г', 'Жиры, г', 'Углеводы, г']) {
+    for (final label in [
+      'Ккал на 100 г',
+      'Белки, г',
+      'Жиры, г',
+      'Углеводы, г',
+    ]) {
       await tester.ensureVisible(field(label));
       await tester.enterText(field(label), '0');
     }
